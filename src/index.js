@@ -1,16 +1,32 @@
 /* eslint-disable no-undef */
 import React, { Component } from 'react'
-// import { PaymeWebSdk } from './PaymeSDK'
 
 export default class WebPaymeSDK extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      iframeVisible: { state: false, hidden: false } // Biến dùng để bật tắt iFreame
+      iframeVisible: { state: false, hidden: false }, // Biến dùng để bật tắt iFreame
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight
     }
     this.configs = {}
     this.isLogin = false
     this._webPaymeSDK = null
+  }
+
+  handleResize = (e) => {
+    this.setState({
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight
+    })
+  }
+
+  componentDidMount() {
+    window.addEventListener('resize', this.handleResize)
+  }
+
+  componentWillUnmount() {
+    window.addEventListener('resize', this.handleResize)
   }
 
   _checkActiveAndKyc = () => {
@@ -43,7 +59,6 @@ export default class WebPaymeSDK extends Component {
           this._webPaymeSDK = new PaymeWebSdk(newConfigs, { id: 'paymeId' })
           this.isLogin = true
         }
-        console.log('ressss', res)
         callback(res)
       })
       .catch((err) => console.log(err))
@@ -62,7 +77,6 @@ export default class WebPaymeSDK extends Component {
     this._webPaymeSDK
       .openWallet()
       .then((res) => {
-        console.log('ressss', res)
         if (res.type === 'onClose') {
           this.setState({
             iframeVisible: { state: false, hidden: false }
@@ -241,24 +255,31 @@ export default class WebPaymeSDK extends Component {
   }
 
   render() {
-    const { iframeVisible } = this.state
+    const { iframeVisible, windowWidth, windowHeight } = this.state
     const { hidden } = iframeVisible
     const styleVisible = {
-      display: 'block',
-      position: 'fixed',
-      top: 0,
+      position: 'absolute',
+      width: '100%',
       left: 0,
-      zIndex: 100,
-      with: '100%',
-      height: '100%'
+      overflow: 'hidden'
     }
 
     const styleHidden = {
       display: 'none'
     }
 
+    const style = hidden ? styleHidden : styleVisible
+
     if (!iframeVisible.state) return null
-    return <div style={hidden ? styleHidden : styleVisible} id='paymeId' />
+    return (
+      <div
+        style={{
+          ...style,
+          paddingTop: `${(windowHeight / windowWidth) * 100}%`
+        }}
+        id='paymeId'
+      />
+    )
   }
 }
 
@@ -471,9 +492,14 @@ class PaymeWebSdk {
     const ifrm = document.createElement('iframe')
 
     ifrm.setAttribute(`src`, link)
-    ifrm.style.width = this.dimension.width
-    ifrm.style.height = this.dimension.height
-    ifrm.frameBorder = '0'
+    ifrm.style.width = '100%'
+    ifrm.style.height = '100%'
+    ifrm.style.position = 'absolute'
+    ifrm.style.top = 0
+    ifrm.style.left = 0
+    ifrm.style.right = 0
+    ifrm.style.bottom = 0
+    ifrm.style.border = 0
     ifrm.allow = 'camera *'
     ifrm.allowFullscreen = true
     const element = document.getElementById(this.id)
@@ -486,13 +512,13 @@ class PaymeWebSdk {
 
     div.style.visibility = 'hidden'
     div.style.display = 'block'
-    div.style.width = '0px'
-    div.style.height = '0px'
+    div.style.width = 0
+    div.style.height = 0
 
     ifrm.setAttribute(`src`, link)
-    ifrm.style.width = '0px'
-    ifrm.style.height = '0px'
-    ifrm.frameBorder = '0'
+    ifrm.style.width = 0
+    ifrm.style.height = 0
+    ifrm.style.border = 0
     const element = document.getElementById(this.id)
     div.appendChild(ifrm)
     element && element.appendChild(div)
@@ -518,7 +544,6 @@ class PaymeWebSdk {
     return new Promise(async (resolve, reject) => {
       const id = this.id
       const iframe = await this.createOpenWalletURL()
-      console.log('iframe===', iframe)
       this.openIframe(iframe)
 
       window.onmessage = function (e) {
