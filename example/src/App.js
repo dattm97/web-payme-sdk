@@ -84,7 +84,6 @@ function App() {
 
   const defaultOption = options[0];
 
-
   useEffect(() => {
     (async () => {
       // We recommend to call `load` at application startup.
