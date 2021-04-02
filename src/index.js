@@ -247,6 +247,8 @@ export default class WebPaymeSDK extends Component {
       display: 'block',
       position: 'fixed',
       top: 0,
+      left: 0,
+      zIndex: 100,
       with: '100%',
       height: '100%'
     }
