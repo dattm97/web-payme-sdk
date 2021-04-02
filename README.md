@@ -1,6 +1,6 @@
 # web-payme-sdk
 
-> Made with create-react-library
+> Package tích hợp Web SDK
 
 [![NPM](https://img.shields.io/npm/v/web-payme-sdk.svg)](https://www.npmjs.com/package/web-payme-sdk) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -15,12 +15,11 @@ npm install --save web-payme-sdk
 ```jsx
 import React, { Component } from 'react'
 
-import MyComponent from 'web-payme-sdk'
-import 'web-payme-sdk/dist/index.css'
+import WebPaymeSDK from 'web-payme-sdk'
 
 class Example extends Component {
   render() {
-    return <MyComponent />
+    return <WebPaymeSDK />
   }
 }
 ```

@@ -1,10 +1,14 @@
 {
   "name": "web-payme-sdk",
-  "version": "1.0.0",
-  "description": "Made with create-react-library",
-  "author": "dattm97",
+  "version": "1.0.3",
+  "description": "Web PayME SDK",
+  "author": "Tran Minh Dat <dattm@payme.vn> (https://git.mecorp.vn/dattm)",
   "license": "MIT",
-  "repository": "dattm97/web-payme-sdk",
+  "homepage": "https://git.mecorp.vn/paymesdk/web-payme-sdk#readme",
+  "repository": "https://git.mecorp.vn/paymesdk/web-payme-sdk",
+  "bugs": {
+    "url": "https://git.mecorp.vn/paymesdk/web-payme-sdk/issues"
+  },
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
   "source": "src/index.js",

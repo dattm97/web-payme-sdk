@@ -10,8 +10,10 @@
     "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
   },
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^3.0.6",
     "react": "link:../node_modules/react",
     "react-dom": "link:../node_modules/react-dom",
+    "react-dropdown": "^1.9.2",
     "react-scripts": "link:../node_modules/react-scripts",
     "web-payme-sdk": "link:.."
   },
