@@ -171,7 +171,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     if (!this._checkActiveAndKyc()) {
-      calback(this.configs?.accountStatus)
+      callback(this.configs.accountStatus)
       return
     }
 
@@ -192,7 +192,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     if (!this._checkActiveAndKyc()) {
-      calback(this.configs?.accountStatus)
+      callback(this.configs.accountStatus)
       return
     }
 
@@ -213,7 +213,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     if (!this._checkActiveAndKyc()) {
-      calback(this.configs?.accountStatus)
+      callback(this.configs.accountStatus)
       return
     }
 
@@ -260,7 +260,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     if (!this._checkActiveAndKyc()) {
-      calback(this.configs?.accountStatus)
+      callback(this.configs.accountStatus)
       return
     }
 
