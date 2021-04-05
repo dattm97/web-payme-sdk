@@ -1,6 +1,29 @@
 /* eslint-disable no-undef */
 import React, { Component } from 'react'
 
+export const ERROR_CODE = {
+  EXPIRED: 401,
+  NETWORK: -1,
+  SYSTEM: -2,
+  LITMIT: -3,
+  ACCOUNT_NOT_ACTIVETES: -4,
+  ACCOUNT_NOT_KYC: -5,
+  PAYMENT_ERROR: -6,
+  ERROR_KEY_ENCODE: -7,
+  USER_CANCELLED: -8
+}
+
+export const AccountStatus = {
+  NOT_ACTIVED: 'NOT_ACTIVED',
+  NOT_KYC: 'NOT_KYC',
+  KYC_OK: 'KYC_OK'
+}
+
+export const LANGUAGES = {
+  VN: 'VN',
+  EN: 'EN'
+}
+
 export default class WebPaymeSDK extends Component {
   constructor(props) {
     super(props)
@@ -37,7 +60,7 @@ export default class WebPaymeSDK extends Component {
     return true
   }
 
-  login = (configs, callback) => {
+  login = (configs, onSuccess, onError) => {
     this.configs = configs
     // eslint-disable-next-line no-undef
     this._webPaymeSDK = new PaymeWebSdk(configs, { id: 'paymeId' })
@@ -52,14 +75,19 @@ export default class WebPaymeSDK extends Component {
         if (res) {
           const newConfigs = {
             ...this.configs,
-            ...res
+            ...res.data
           }
           this.configs = newConfigs
           // eslint-disable-next-line no-undef
           this._webPaymeSDK = new PaymeWebSdk(newConfigs, { id: 'paymeId' })
           this.isLogin = true
         }
-        callback(res)
+
+        if (res?.error) {
+          if (onError) onError(res?.error)
+        } else {
+          if (onSuccess) onSuccess(res)
+        }
       })
       .catch((err) => console.log(err))
   }
@@ -164,14 +192,14 @@ export default class WebPaymeSDK extends Component {
       .catch((err) => console.log(err))
   }
 
-  getBalance = (callback) => {
+  getBalance = (onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
     }
 
     if (!this._checkActiveAndKyc()) {
-      callback(this.configs.accountStatus)
+      onError(this.configs.accountStatus)
       return
     }
 
@@ -181,18 +209,24 @@ export default class WebPaymeSDK extends Component {
 
     this._webPaymeSDK
       .getBalance()
-      .then((res) => callback(res))
+      .then((res) => {
+        if (res?.error) {
+          if (onError) onError(res?.error)
+        } else {
+          if (onSuccess) onSuccess(res)
+        }
+      })
       .catch((err) => console.log(err))
   }
 
-  getListService = (callback) => {
+  getListService = (onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
     }
 
     if (!this._checkActiveAndKyc()) {
-      callback(this.configs.accountStatus)
+      onError(this.configs.accountStatus)
       return
     }
 
@@ -202,18 +236,24 @@ export default class WebPaymeSDK extends Component {
 
     this._webPaymeSDK
       .getListService()
-      .then((res) => callback(res))
+      .then((res) => {
+        if (res?.error) {
+          if (onError) onError(res?.error)
+        } else {
+          if (onSuccess) onSuccess(res)
+        }
+      })
       .catch((err) => console.log(err))
   }
 
-  getAccountInfo = (callback) => {
+  getAccountInfo = (onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
     }
 
     if (!this._checkActiveAndKyc()) {
-      callback(this.configs.accountStatus)
+      onError(this.configs.accountStatus)
       return
     }
 
@@ -223,7 +263,13 @@ export default class WebPaymeSDK extends Component {
 
     this._webPaymeSDK
       .getAccountInfo()
-      .then((res) => callback(res))
+      .then((res) => {
+        if (res?.error) {
+          if (onError) onError(res?.error)
+        } else {
+          if (onSuccess) onSuccess(res)
+        }
+      })
       .catch((err) => console.log(err))
   }
 
@@ -253,14 +299,14 @@ export default class WebPaymeSDK extends Component {
       .catch((err) => console.log(err))
   }
 
-  getListPaymentMethod = (callback) => {
+  getListPaymentMethod = (onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
     }
 
     if (!this._checkActiveAndKyc()) {
-      callback(this.configs.accountStatus)
+      onError(this.configs.accountStatus)
       return
     }
 
@@ -270,7 +316,13 @@ export default class WebPaymeSDK extends Component {
 
     this._webPaymeSDK
       .getListPaymentMethod()
-      .then((res) => callback(res))
+      .then((res) => {
+        if (res?.error) {
+          if (onError) onError(res?.error)
+        } else {
+          if (onSuccess) onSuccess(res)
+        }
+      })
       .catch((err) => console.log(err))
   }
 
@@ -336,7 +388,7 @@ class PaymeWebSdk {
   getDomain(env) {
     switch (env) {
       case this.ENV.dev:
-        return 'https://sbx-sdk2.payme.com.vn'
+        return 'https://sbx-sdk2.payme.com.vn2'
       case this.ENV.sandbox:
         return 'https://sbx-sdk.payme.com.vn'
       case this.ENV.production:
@@ -552,7 +604,7 @@ class PaymeWebSdk {
 
       window.onmessage = function (e) {
         if (e.data.type === 'LOGIN') {
-          const data = e.data.data
+          const data = e.data
           resolve(data)
           document.getElementById(id).innerHTML = ''
         }
@@ -628,7 +680,7 @@ class PaymeWebSdk {
 
       window.onmessage = function (e) {
         if (e.data.type === 'GET_WALLET_INFO') {
-          const data = e.data.data
+          const data = e.data
           resolve(data)
           document.getElementById(id).innerHTML = ''
         }
@@ -644,7 +696,7 @@ class PaymeWebSdk {
 
       window.onmessage = function (e) {
         if (e.data.type === 'GET_LIST_SERVICE') {
-          const data = e.data.data
+          const data = e.data
           resolve(data)
           document.getElementById(id).innerHTML = ''
         }
@@ -660,7 +712,7 @@ class PaymeWebSdk {
 
       window.onmessage = function (e) {
         if (e.data.type === 'GET_LIST_PAYMENT_METHOD') {
-          const data = e.data.data
+          const data = e.data
           resolve(data)
           document.getElementById(id).innerHTML = ''
         }
@@ -676,7 +728,7 @@ class PaymeWebSdk {
 
       window.onmessage = function (e) {
         if (e.data.type === 'GET_ACCOUNT_INFO') {
-          const data = e.data.data
+          const data = e.data
           resolve(data)
           document.getElementById(id).innerHTML = ''
         }
