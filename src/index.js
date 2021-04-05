@@ -170,6 +170,11 @@ export default class WebPaymeSDK extends Component {
       return
     }
 
+    if (!this._checkActiveAndKyc()) {
+      calback(this.configs?.accountStatus)
+      return
+    }
+
     this.setState({
       iframeVisible: { state: true, hidden: true }
     })
@@ -186,6 +191,11 @@ export default class WebPaymeSDK extends Component {
       return
     }
 
+    if (!this._checkActiveAndKyc()) {
+      calback(this.configs?.accountStatus)
+      return
+    }
+
     this.setState({
       iframeVisible: { state: true, hidden: true }
     })
@@ -199,6 +209,11 @@ export default class WebPaymeSDK extends Component {
   getAccountInfo = (callback) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
+      return
+    }
+
+    if (!this._checkActiveAndKyc()) {
+      calback(this.configs?.accountStatus)
       return
     }
 
@@ -241,6 +256,11 @@ export default class WebPaymeSDK extends Component {
   getListPaymentMethod = (callback) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
+      return
+    }
+
+    if (!this._checkActiveAndKyc()) {
+      calback(this.configs?.accountStatus)
       return
     }
 
