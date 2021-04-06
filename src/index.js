@@ -6,7 +6,7 @@ export const ERROR_CODE = {
   NETWORK: -1,
   SYSTEM: -2,
   LITMIT: -3,
-  ACCOUNT_NOT_ACTIVETES: -4,
+  ACCOUNT_NOT_ACTIVITIES: -4,
   ACCOUNT_NOT_KYC: -5,
   PAYMENT_ERROR: -6,
   ERROR_KEY_ENCODE: -7,
@@ -24,6 +24,19 @@ export const LANGUAGES = {
   EN: 'EN'
 }
 
+const WALLET_ACTIONS = {
+  LOGIN: 'LOGIN',
+  GET_WALLET_INFO: 'GET_WALLET_INFO',
+  GET_ACCOUNT_INFO: 'GET_ACCOUNT_INFO',
+  OPEN_WALLET: 'OPEN_WALLET',
+  WITHDRAW: 'WITHDRAW',
+  DEPOSIT: 'DEPOSIT',
+  GET_LIST_SERVICE: 'GET_LIST_SERVICE',
+  UTILITY: 'UTILITY',
+  GET_LIST_PAYMENT_METHOD: 'GET_LIST_PAYMENT_METHOD',
+  PAY: 'PAY'
+}
+
 export default class WebPaymeSDK extends Component {
   constructor(props) {
     super(props)
@@ -32,9 +45,57 @@ export default class WebPaymeSDK extends Component {
       windowWidth: window.innerWidth,
       windowHeight: window.innerHeight
     }
+    this.id = 'paymeId'
     this.configs = {}
     this.isLogin = false
     this._webPaymeSDK = null
+
+    window.onmessage = (e) => {
+      if (e?.data?.type === WALLET_ACTIONS.LOGIN) {
+        if (e?.data?.data) {
+          const newConfigs = {
+            ...this.configs,
+            ...e.data.data
+          }
+          this.configs = newConfigs
+          /* eslint-disable no-undef */
+          this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+          this.isLogin = true
+          this.sendRespone(e)
+        }
+      }
+      if (e?.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
+        this.sendRespone(e)
+      }
+      if (e?.data?.type === 'onClose') {
+        document.getElementById(this.id).innerHTML = ''
+        this.setState({
+          iframeVisible: { state: false, hidden: false }
+        })
+      }
+      if (e?.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
+        this.sendRespone(e)
+      }
+      if (e?.data?.type === WALLET_ACTIONS.GET_LIST_SERVICE) {
+        this.sendRespone(e)
+      }
+      if (e?.data?.type === WALLET_ACTIONS.PAY) {
+        this.sendRespone(e)
+      }
+      if (e?.data?.type === WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD) {
+        this.sendRespone(e)
+      }
+    }
+  }
+
+  sendRespone = (data) => {
+    if (data.error) {
+      if (this._onError) this._onError(data.error)
+      this._onError = null
+    } else {
+      if (this._onSuccess) this._onSuccess(data.data)
+      this._onSuccess = null
+    }
   }
 
   handleResize = (e) => {
@@ -60,39 +121,59 @@ export default class WebPaymeSDK extends Component {
     return true
   }
 
-  login = (configs, onSuccess, onError) => {
+  openIframe = (link) => {
+    const ifrm = document.createElement('iframe')
+
+    ifrm.setAttribute(`src`, link)
+    ifrm.style.width = '100%'
+    ifrm.style.height = '100%'
+    ifrm.style.position = 'absolute'
+    ifrm.style.top = 0
+    ifrm.style.left = 0
+    ifrm.style.right = 0
+    ifrm.style.bottom = 0
+    ifrm.style.border = 0
+    ifrm.allow = 'camera *'
+    ifrm.allowFullscreen = true
+    const element = document.getElementById(this.id)
+    element && element.appendChild(ifrm)
+  }
+
+  openHiddenIframe = (link) => {
+    const div = document.createElement('div')
+    const ifrm = document.createElement('iframe')
+
+    div.style.visibility = 'hidden'
+    div.style.display = 'block'
+    div.style.width = 0
+    div.style.height = 0
+
+    ifrm.setAttribute(`src`, link)
+    ifrm.style.width = 0
+    ifrm.style.height = 0
+    ifrm.style.border = 0
+    const element = document.getElementById(this.id)
+
+    div.appendChild(ifrm)
+    element && element.appendChild(div)
+  }
+
+  login = async (configs, onSuccess, onError) => {
+    this.setState({
+      iframeVisible: { state: true, hidden: true }
+    })
+
     this.configs = configs
     // eslint-disable-next-line no-undef
-    this._webPaymeSDK = new PaymeWebSdk(configs, { id: 'paymeId' })
+    this._webPaymeSDK = new PaymeWebSdk(configs)
+    const iframe = await this._webPaymeSDK.createLoginURL()
+    this.openHiddenIframe(iframe)
 
-    this.setState({
-      iframeVisible: { state: true, hidden: true }
-    })
-
-    this._webPaymeSDK
-      .login()
-      .then((res) => {
-        if (res) {
-          const newConfigs = {
-            ...this.configs,
-            ...res.data
-          }
-          this.configs = newConfigs
-          // eslint-disable-next-line no-undef
-          this._webPaymeSDK = new PaymeWebSdk(newConfigs, { id: 'paymeId' })
-          this.isLogin = true
-        }
-
-        if (res?.error) {
-          if (onError) onError(res?.error)
-        } else {
-          if (onSuccess) onSuccess(res)
-        }
-      })
-      .catch((err) => console.log(err))
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
-  openWallet = () => {
+  openWallet = async () => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -101,20 +182,11 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true, hidden: false }
     })
-
-    this._webPaymeSDK
-      .openWallet()
-      .then((res) => {
-        if (res.type === 'onClose') {
-          this.setState({
-            iframeVisible: { state: false, hidden: false }
-          })
-        }
-      })
-      .catch((err) => console.log(err))
+    const iframe = await this._webPaymeSDK.createOpenWalletURL()
+    this.openIframe(iframe)
   }
 
-  deposit = (param) => {
+  deposit = async (param) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -128,19 +200,11 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true, hidden: false }
     })
 
-    this._webPaymeSDK
-      .deposit(param)
-      .then((res) => {
-        if (res.type === 'onClose') {
-          this.setState({
-            iframeVisible: { state: false, hidden: false }
-          })
-        }
-      })
-      .catch((err) => console.log(err))
+    const iframe = await this._webPaymeSDK.createDepositURL(param)
+    this.openIframe(iframe)
   }
 
-  withdraw = (param) => {
+  withdraw = async (param) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -154,19 +218,11 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true, hidden: false }
     })
 
-    this._webPaymeSDK
-      .withdraw(param)
-      .then((res) => {
-        if (res.type === 'onClose') {
-          this.setState({
-            iframeVisible: { state: false, hidden: false }
-          })
-        }
-      })
-      .catch((err) => console.log(err))
+    const iframe = await this._webPaymeSDK.createWithdrawURL(param)
+    this.openIframe(iframe)
   }
 
-  pay = (param) => {
+  pay = async (param, onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -180,19 +236,14 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true, hidden: false }
     })
 
-    this._webPaymeSDK
-      .pay(param)
-      .then((res) => {
-        if (res.type === 'onClose') {
-          this.setState({
-            iframeVisible: { state: false, hidden: false }
-          })
-        }
-      })
-      .catch((err) => console.log(err))
+    const iframe = await this._webPaymeSDK.createPayURL(param)
+    this.openIframe(iframe)
+
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
-  getBalance = (onSuccess, onError) => {
+  getBalance = async (onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -206,20 +257,14 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true, hidden: true }
     })
+    const iframe = await this._webPaymeSDK.createGetBalanceURL()
+    this.openHiddenIframe(iframe)
 
-    this._webPaymeSDK
-      .getBalance()
-      .then((res) => {
-        if (res?.error) {
-          if (onError) onError(res?.error)
-        } else {
-          if (onSuccess) onSuccess(res)
-        }
-      })
-      .catch((err) => console.log(err))
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
-  getListService = (onSuccess, onError) => {
+  getListService = async (onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -233,20 +278,14 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true, hidden: true }
     })
+    const iframe = await this._webPaymeSDK.createGetListServiceURL()
+    this.openHiddenIframe(iframe)
 
-    this._webPaymeSDK
-      .getListService()
-      .then((res) => {
-        if (res?.error) {
-          if (onError) onError(res?.error)
-        } else {
-          if (onSuccess) onSuccess(res)
-        }
-      })
-      .catch((err) => console.log(err))
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
-  getAccountInfo = (onSuccess, onError) => {
+  getAccountInfo = async (onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -260,20 +299,14 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true, hidden: true }
     })
+    const iframe = await this._webPaymeSDK.createGetAccountInfoURL()
+    this.openHiddenIframe(iframe)
 
-    this._webPaymeSDK
-      .getAccountInfo()
-      .then((res) => {
-        if (res?.error) {
-          if (onError) onError(res?.error)
-        } else {
-          if (onSuccess) onSuccess(res)
-        }
-      })
-      .catch((err) => console.log(err))
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
-  openService = () => {
+  openService = async () => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -287,19 +320,11 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true, hidden: false }
     })
 
-    this._webPaymeSDK
-      .openService('HOCPHI')
-      .then((res) => {
-        if (res.type === 'onClose') {
-          this.setState({
-            iframeVisible: { state: false, hidden: false }
-          })
-        }
-      })
-      .catch((err) => console.log(err))
+    const iframe = await this._webPaymeSDK.createOpenServiceURL('HOCPHI')
+    this.openIframe(iframe)
   }
 
-  getListPaymentMethod = (onSuccess, onError) => {
+  getListPaymentMethod = async (onSuccess, onError) => {
     if (!this.isLogin) {
       alert('NOT LOGIN')
       return
@@ -313,17 +338,11 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true, hidden: true }
     })
+    const iframe = await this._webPaymeSDK.createGetListPaymentMethodURL()
+    this.openHiddenIframe(iframe)
 
-    this._webPaymeSDK
-      .getListPaymentMethod()
-      .then((res) => {
-        if (res?.error) {
-          if (onError) onError(res?.error)
-        } else {
-          if (onSuccess) onSuccess(res)
-        }
-      })
-      .catch((err) => console.log(err))
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
   render() {
@@ -349,7 +368,7 @@ export default class WebPaymeSDK extends Component {
           ...style,
           paddingTop: `${(windowHeight / windowWidth) * 100}%`
         }}
-        id='paymeId'
+        id={this.id}
       />
     )
   }
@@ -377,10 +396,9 @@ class PaymeWebSdk {
 
   constructor(configs, settings) {
     this.configs = configs
-    this.id = settings.id
     this.dimension = {
-      width: settings.width || `${window.innerWidth}px`,
-      height: settings.height || `${window.innerHeight}px`
+      width: settings?.width || `${window.innerWidth}px`,
+      height: settings?.height || `${window.innerHeight}px`
     }
     this.domain = this.getDomain(configs.env)
   }
@@ -388,7 +406,7 @@ class PaymeWebSdk {
   getDomain(env) {
     switch (env) {
       case this.ENV.dev:
-        return 'https://sbx-sdk2.payme.com.vn2'
+        return 'https://sbx-sdk2.payme.com.vn'
       case this.ENV.sandbox:
         return 'https://sbx-sdk.payme.com.vn'
       case this.ENV.production:
@@ -558,202 +576,5 @@ class PaymeWebSdk {
     const encrypt = await this.encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
-  }
-
-  openIframe(link) {
-    const ifrm = document.createElement('iframe')
-
-    ifrm.setAttribute(`src`, link)
-    ifrm.style.width = '100%'
-    ifrm.style.height = '100%'
-    ifrm.style.position = 'absolute'
-    ifrm.style.top = 0
-    ifrm.style.left = 0
-    ifrm.style.right = 0
-    ifrm.style.bottom = 0
-    ifrm.style.border = 0
-    ifrm.allow = 'camera *'
-    ifrm.allowFullscreen = true
-    const element = document.getElementById(this.id)
-    element && element.appendChild(ifrm)
-  }
-
-  hideIframe(link) {
-    const div = document.createElement('div')
-    const ifrm = document.createElement('iframe')
-
-    div.style.visibility = 'hidden'
-    div.style.display = 'block'
-    div.style.width = 0
-    div.style.height = 0
-
-    ifrm.setAttribute(`src`, link)
-    ifrm.style.width = 0
-    ifrm.style.height = 0
-    ifrm.style.border = 0
-    const element = document.getElementById(this.id)
-    div.appendChild(ifrm)
-    element && element.appendChild(div)
-  }
-
-  login() {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createLoginURL()
-      this.hideIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'LOGIN') {
-          const data = e.data
-          resolve(data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  openWallet() {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createOpenWalletURL()
-      this.openIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'onClose') {
-          resolve(e.data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  withdraw(configs) {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createWithdrawURL(configs)
-      this.openIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'onClose') {
-          resolve(e.data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  deposit(configs) {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createDepositURL(configs)
-      this.openIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'onClose') {
-          resolve(e.data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  pay(configs) {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createPayURL(configs)
-      this.openIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'onClose') {
-          resolve(e.data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  getBalance() {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createGetBalanceURL()
-      this.hideIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'GET_WALLET_INFO') {
-          const data = e.data
-          resolve(data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  getListService() {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createGetListServiceURL()
-      this.hideIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'GET_LIST_SERVICE') {
-          const data = e.data
-          resolve(data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  getListPaymentMethod() {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createGetListPaymentMethodURL()
-      this.hideIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'GET_LIST_PAYMENT_METHOD') {
-          const data = e.data
-          resolve(data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  getAccountInfo() {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createGetAccountInfoURL()
-      this.hideIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'GET_ACCOUNT_INFO') {
-          const data = e.data
-          resolve(data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  openService(configs) {
-    return new Promise(async (resolve, reject) => {
-      const id = this.id
-      const iframe = await this.createOpenServiceURL(configs)
-      this.openIframe(iframe)
-
-      window.onmessage = function (e) {
-        if (e.data.type === 'onClose') {
-          resolve(e.data)
-          document.getElementById(id).innerHTML = ''
-        }
-      }
-    })
-  }
-
-  onMessage(onEvent) {
-    window.onmessage = function (e) {
-      onEvent(e.data)
-    }
   }
 }
