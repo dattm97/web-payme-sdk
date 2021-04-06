@@ -51,8 +51,8 @@ export default class WebPaymeSDK extends Component {
     this._webPaymeSDK = null
 
     window.onmessage = (e) => {
-      if (e?.data?.type === WALLET_ACTIONS.LOGIN) {
-        if (e?.data?.data) {
+      if (e.data.type === WALLET_ACTIONS.LOGIN) {
+        if (e.data?.data) {
           const newConfigs = {
             ...this.configs,
             ...e.data.data
@@ -61,39 +61,39 @@ export default class WebPaymeSDK extends Component {
           /* eslint-disable no-undef */
           this._webPaymeSDK = new PaymeWebSdk(newConfigs)
           this.isLogin = true
-          this.sendRespone(e)
+          this.sendRespone(e.data)
         }
       }
-      if (e?.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
-        this.sendRespone(e)
+      if (e.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
+        this.sendRespone(e.data)
       }
-      if (e?.data?.type === 'onClose') {
+      if (e.data?.type === 'onClose') {
         document.getElementById(this.id).innerHTML = ''
         this.setState({
           iframeVisible: { state: false, hidden: false }
         })
       }
-      if (e?.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
-        this.sendRespone(e)
+      if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
+        this.sendRespone(e.data)
       }
-      if (e?.data?.type === WALLET_ACTIONS.GET_LIST_SERVICE) {
-        this.sendRespone(e)
+      if (e.data?.type === WALLET_ACTIONS.GET_LIST_SERVICE) {
+        this.sendRespone(e.data)
       }
-      if (e?.data?.type === WALLET_ACTIONS.PAY) {
-        this.sendRespone(e)
+      if (e.data?.type === WALLET_ACTIONS.PAY) {
+        this.sendRespone(e.data)
       }
-      if (e?.data?.type === WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD) {
-        this.sendRespone(e)
+      if (e.data?.type === WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD) {
+        this.sendRespone(e.data)
       }
     }
   }
 
   sendRespone = (data) => {
-    if (data.error) {
-      if (this._onError) this._onError(data.error)
+    if (data?.error) {
+      if (this._onError) this._onError(data?.error)
       this._onError = null
     } else {
-      if (this._onSuccess) this._onSuccess(data.data)
+      if (this._onSuccess) this._onSuccess(data)
       this._onSuccess = null
     }
   }
@@ -253,7 +253,6 @@ export default class WebPaymeSDK extends Component {
       onError(this.configs.accountStatus)
       return
     }
-
     this.setState({
       iframeVisible: { state: true, hidden: true }
     })
