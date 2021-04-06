@@ -73,6 +73,9 @@ export default class WebPaymeSDK extends Component {
           iframeVisible: { state: false, hidden: false }
         })
       }
+      if (e.data?.type === 'error') {
+        this.sendRespone(e.data)
+      }
       if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
         this.sendRespone(e.data)
       }
@@ -520,7 +523,9 @@ class PaymeWebSdk {
         amount: param.amount,
         orderId: param.orderId,
         storeId: param.storeId,
-        note: param.note
+        note: param.note,
+        method: param.method,
+        isShowResultUI: param.isShowResultUI
       }
     }
     const encrypt = await this.encrypt(configs)
