@@ -47,6 +47,9 @@ export default class WebPaymeSDK extends Component {
     }
     this.id = 'paymeId'
     this.configs = {}
+    this.width = props.width
+    this.height = props.height
+
     this.isLogin = false
     this._webPaymeSDK = null
 
@@ -128,8 +131,8 @@ export default class WebPaymeSDK extends Component {
     const ifrm = document.createElement('iframe')
 
     ifrm.setAttribute(`src`, link)
-    ifrm.style.width = '100%'
-    ifrm.style.height = '100%'
+    ifrm.style.width = this.width ? `${this.width}px` : '100%'
+    ifrm.style.height = this.height ? `${this.height}px` : '100%'
     ifrm.style.position = 'absolute'
     ifrm.style.top = 0
     ifrm.style.left = 0
@@ -360,7 +363,6 @@ export default class WebPaymeSDK extends Component {
     const styleHidden = {
       display: 'none'
     }
-
     const style = hidden ? styleHidden : styleVisible
 
     if (!iframeVisible.state) return null
@@ -398,10 +400,6 @@ class PaymeWebSdk {
 
   constructor(configs, settings) {
     this.configs = configs
-    this.dimension = {
-      width: settings?.width || `${window.innerWidth}px`,
-      height: settings?.height || `${window.innerHeight}px`
-    }
     this.domain = this.getDomain(configs.env)
   }
 
