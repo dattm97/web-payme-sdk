@@ -55,6 +55,7 @@ export default class WebPaymeSDK extends Component {
 
     window.onmessage = (e) => {
       if (e.data.type === WALLET_ACTIONS.LOGIN) {
+        console.log('e.data login', e.data, this.configs)
         if (e.data?.data) {
           const newConfigs = {
             ...this.configs,
@@ -77,7 +78,13 @@ export default class WebPaymeSDK extends Component {
         })
       }
       if (e.data?.type === 'error') {
-        this.sendRespone(e.data)
+        if (e.data?.code === 401) {
+          document.getElementById(this.id).innerHTML = ''
+          this.setState({
+            iframeVisible: { state: false, hidden: false }
+          })
+        }
+        // this.sendRespone(e.data);
       }
       if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
         this.sendRespone(e.data)
@@ -140,6 +147,8 @@ export default class WebPaymeSDK extends Component {
     ifrm.style.bottom = 0
     ifrm.style.border = 0
     ifrm.allow = 'camera *'
+    ifrm.referrerPolicy = 'origin-when-cross-origin'
+    ifrm.allowpaymentrequest = true
     ifrm.allowFullscreen = true
     const element = document.getElementById(this.id)
     element && element.appendChild(ifrm)
