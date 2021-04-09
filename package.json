@@ -1,6 +1,6 @@
 {
   "name": "web-payme-sdk",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Web PayME SDK",
   "author": "Tran Minh Dat <dattm@payme.vn> (https://git.mecorp.vn/dattm)",
   "license": "MIT",

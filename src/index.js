@@ -52,10 +52,11 @@ export default class WebPaymeSDK extends Component {
 
     this.isLogin = false
     this._webPaymeSDK = null
+    this._iframe = null
 
     window.onmessage = (e) => {
       if (e.data.type === WALLET_ACTIONS.LOGIN) {
-        console.log('e.data login', e.data, this.configs)
+        this.onCloseIframe()
         if (e.data?.data) {
           const newConfigs = {
             ...this.configs,
@@ -69,36 +70,46 @@ export default class WebPaymeSDK extends Component {
         }
       }
       if (e.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
+        this.onCloseIframe()
         this.sendRespone(e.data)
       }
       if (e.data?.type === 'onClose') {
         document.getElementById(this.id).innerHTML = ''
-        this.setState({
-          iframeVisible: { state: false, hidden: false }
-        })
+        this.onCloseIframe()
       }
       if (e.data?.type === 'error') {
         if (e.data?.code === 401) {
           document.getElementById(this.id).innerHTML = ''
-          this.setState({
-            iframeVisible: { state: false, hidden: false }
-          })
+          this.onCloseIframe()
         }
         // this.sendRespone(e.data);
       }
       if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
         this.sendRespone(e.data)
+        this.onCloseIframe()
       }
       if (e.data?.type === WALLET_ACTIONS.GET_LIST_SERVICE) {
         this.sendRespone(e.data)
+        this.onCloseIframe()
       }
       if (e.data?.type === WALLET_ACTIONS.PAY) {
         this.sendRespone(e.data)
+        this.onCloseIframe()
       }
       if (e.data?.type === WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD) {
         this.sendRespone(e.data)
+        this.onCloseIframe()
       }
     }
+  }
+
+  onCloseIframe = () => {
+    this.setState(
+      {
+        iframeVisible: { state: false, hidden: false }
+      },
+      () => this._iframe?.remove()
+    )
   }
 
   sendRespone = (data) => {
@@ -136,6 +147,7 @@ export default class WebPaymeSDK extends Component {
 
   openIframe = (link) => {
     const ifrm = document.createElement('iframe')
+    this._iframe = ifrm
 
     ifrm.setAttribute(`src`, link)
     ifrm.style.width = this.width ? `${this.width}px` : '100%'
@@ -157,6 +169,7 @@ export default class WebPaymeSDK extends Component {
   openHiddenIframe = (link) => {
     const div = document.createElement('div')
     const ifrm = document.createElement('iframe')
+    this._iframe = ifrm
 
     div.style.visibility = 'hidden'
     div.style.display = 'block'
