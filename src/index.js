@@ -41,9 +41,7 @@ export default class WebPaymeSDK extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      iframeVisible: { state: false, hidden: false }, // Biến dùng để bật tắt iFreame
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight
+      iframeVisible: { state: false, hidden: false } // Biến dùng để bật tắt iFreame
     }
     this.id = 'paymeId'
     this.configs = {}
@@ -79,10 +77,9 @@ export default class WebPaymeSDK extends Component {
       }
       if (e.data?.type === 'error') {
         if (e.data?.code === 401) {
-          document.getElementById(this.id).innerHTML = ''
           this.onCloseIframe()
         }
-        // this.sendRespone(e.data);
+        this.sendRespone(e.data);
       }
       if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
         this.sendRespone(e.data)
@@ -116,25 +113,13 @@ export default class WebPaymeSDK extends Component {
     if (data?.error) {
       if (this._onError) this._onError(data?.error)
       this._onError = null
+    } else if (data?.code === 401) {
+      if (this._onError) this._onError(data)
+      this._onError = null
     } else {
       if (this._onSuccess) this._onSuccess(data)
       this._onSuccess = null
     }
-  }
-
-  handleResize = (e) => {
-    this.setState({
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight
-    })
-  }
-
-  componentDidMount() {
-    window.addEventListener('resize', this.handleResize)
-  }
-
-  componentWillUnmount() {
-    window.addEventListener('resize', this.handleResize)
   }
 
   _checkActiveAndKyc = () => {
@@ -152,7 +137,7 @@ export default class WebPaymeSDK extends Component {
     ifrm.setAttribute(`src`, link)
     ifrm.style.width = this.width ? `${this.width}px` : '100%'
     ifrm.style.height = this.height ? `${this.height}px` : '100%'
-    ifrm.style.position = 'absolute'
+    ifrm.style.position = 'relative'
     ifrm.style.top = 0
     ifrm.style.left = 0
     ifrm.style.right = 0
@@ -373,11 +358,13 @@ export default class WebPaymeSDK extends Component {
   }
 
   render() {
-    const { iframeVisible, windowWidth, windowHeight } = this.state
+    const { iframeVisible } = this.state
     const { hidden } = iframeVisible
     const styleVisible = {
       position: 'absolute',
       width: '100%',
+      height: '100%',
+      top: 0,
       left: 0,
       overflow: 'hidden'
     }
@@ -391,8 +378,8 @@ export default class WebPaymeSDK extends Component {
     return (
       <div
         style={{
-          ...style,
-          paddingTop: `${(windowHeight / windowWidth) * 100}%`
+          ...style
+          // paddingTop: `${(windowHeight / windowWidth) * 100}%`
         }}
         id={this.id}
       />
