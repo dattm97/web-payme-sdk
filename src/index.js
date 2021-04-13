@@ -79,7 +79,7 @@ export default class WebPaymeSDK extends Component {
         if (e.data?.code === 401) {
           this.onCloseIframe()
         }
-        this.sendRespone(e.data);
+        this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
         this.sendRespone(e.data)
@@ -415,7 +415,7 @@ class PaymeWebSdk {
   getDomain(env) {
     switch (env) {
       case this.ENV.dev:
-        return 'https://sbx-sdk2.payme.com.vn'
+        return 'https://dev-sdk.payme.com.vn'
       case this.ENV.sandbox:
         return 'https://sbx-sdk.payme.com.vn'
       case this.ENV.production:
