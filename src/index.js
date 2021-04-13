@@ -10,7 +10,8 @@ export const ERROR_CODE = {
   ACCOUNT_NOT_KYC: -5,
   PAYMENT_ERROR: -6,
   ERROR_KEY_ENCODE: -7,
-  USER_CANCELLED: -8
+  USER_CANCELLED: -8,
+  NOT_LOGIN: -9
 }
 
 export const AccountStatus = {
@@ -64,8 +65,8 @@ export default class WebPaymeSDK extends Component {
           /* eslint-disable no-undef */
           this._webPaymeSDK = new PaymeWebSdk(newConfigs)
           this.isLogin = true
-          this.sendRespone(e.data)
         }
+        this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
         this.onCloseIframe()
@@ -82,20 +83,25 @@ export default class WebPaymeSDK extends Component {
         this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
-        this.sendRespone(e.data)
         this.onCloseIframe()
+        this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.GET_LIST_SERVICE) {
-        this.sendRespone(e.data)
         this.onCloseIframe()
+        this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.PAY) {
         this.sendRespone(e.data)
-        this.onCloseIframe()
+      }
+      if (e.data?.type === WALLET_ACTIONS.DEPOSIT) {
+        this.sendRespone(e.data)
+      }
+      if (e.data?.type === WALLET_ACTIONS.WITHDRAW) {
+        this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD) {
-        this.sendRespone(e.data)
         this.onCloseIframe()
+        this.sendRespone(e.data)
       }
     }
   }
@@ -124,7 +130,6 @@ export default class WebPaymeSDK extends Component {
 
   _checkActiveAndKyc = () => {
     if (this.configs?.accountStatus !== 'KYC_OK') {
-      alert(this.configs?.accountStatus)
       return false
     }
     return true
@@ -186,9 +191,12 @@ export default class WebPaymeSDK extends Component {
     this._onError = onError
   }
 
-  openWallet = async () => {
+  openWallet = async (onSuccess, onError) => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
@@ -197,15 +205,28 @@ export default class WebPaymeSDK extends Component {
     })
     const iframe = await this._webPaymeSDK.createOpenWalletURL()
     this.openIframe(iframe)
+
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
-  deposit = async (param) => {
+  deposit = async (param, onSuccess, onError) => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
     if (!this._checkActiveAndKyc()) {
+      this.sendRespone({
+        type: 'error',
+        error: {
+          code: this.configs.accountStatus,
+          message: this.configs.accountStatus
+        }
+      })
       return
     }
 
@@ -215,15 +236,28 @@ export default class WebPaymeSDK extends Component {
 
     const iframe = await this._webPaymeSDK.createDepositURL(param)
     this.openIframe(iframe)
+
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
-  withdraw = async (param) => {
+  withdraw = async (param, onSuccess, onError) => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
     if (!this._checkActiveAndKyc()) {
+      this.sendRespone({
+        type: 'error',
+        error: {
+          code: this.configs.accountStatus,
+          message: this.configs.accountStatus
+        }
+      })
       return
     }
 
@@ -233,15 +267,28 @@ export default class WebPaymeSDK extends Component {
 
     const iframe = await this._webPaymeSDK.createWithdrawURL(param)
     this.openIframe(iframe)
+
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
   pay = async (param, onSuccess, onError) => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
     if (!this._checkActiveAndKyc()) {
+      this.sendRespone({
+        type: 'error',
+        error: {
+          code: this.configs.accountStatus,
+          message: this.configs.accountStatus
+        }
+      })
       return
     }
 
@@ -258,12 +305,21 @@ export default class WebPaymeSDK extends Component {
 
   getBalance = async (onSuccess, onError) => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
     if (!this._checkActiveAndKyc()) {
-      onError(this.configs.accountStatus)
+      this.sendRespone({
+        type: 'error',
+        error: {
+          code: this.configs.accountStatus,
+          message: this.configs.accountStatus
+        }
+      })
       return
     }
     this.setState({
@@ -278,12 +334,21 @@ export default class WebPaymeSDK extends Component {
 
   getListService = async (onSuccess, onError) => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
     if (!this._checkActiveAndKyc()) {
-      onError(this.configs.accountStatus)
+      this.sendRespone({
+        type: 'error',
+        error: {
+          code: this.configs.accountStatus,
+          message: this.configs.accountStatus
+        }
+      })
       return
     }
 
@@ -299,12 +364,21 @@ export default class WebPaymeSDK extends Component {
 
   getAccountInfo = async (onSuccess, onError) => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
     if (!this._checkActiveAndKyc()) {
-      onError(this.configs.accountStatus)
+      this.sendRespone({
+        type: 'error',
+        error: {
+          code: this.configs.accountStatus,
+          message: this.configs.accountStatus
+        }
+      })
       return
     }
 
@@ -320,11 +394,21 @@ export default class WebPaymeSDK extends Component {
 
   openService = async () => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
     if (!this._checkActiveAndKyc()) {
+      this.sendRespone({
+        type: 'error',
+        error: {
+          code: this.configs.accountStatus,
+          message: this.configs.accountStatus
+        }
+      })
       return
     }
 
@@ -338,12 +422,21 @@ export default class WebPaymeSDK extends Component {
 
   getListPaymentMethod = async (onSuccess, onError) => {
     if (!this.isLogin) {
-      alert('NOT LOGIN')
+      this.sendRespone({
+        type: 'error',
+        error: { code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' }
+      })
       return
     }
 
     if (!this._checkActiveAndKyc()) {
-      onError(this.configs.accountStatus)
+      this.sendRespone({
+        type: 'error',
+        error: {
+          code: this.configs.accountStatus,
+          message: this.configs.accountStatus
+        }
+      })
       return
     }
 
