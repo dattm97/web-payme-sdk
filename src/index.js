@@ -89,7 +89,9 @@ export default class WebPaymeSDK extends Component {
       if (e.data?.type === 'onClose') {
         document.getElementById(this.id).innerHTML = ''
         this.onCloseIframe()
-        this.sendRespone({ error: { code: ERROR_CODE.CLOSE_IFRAME, message: 'Đóng iframe' } })
+        this.sendRespone({
+          error: { code: ERROR_CODE.CLOSE_IFRAME, message: 'Đóng iframe' }
+        })
       }
       if (e.data?.type === 'error') {
         if (e.data?.code === 401) {
