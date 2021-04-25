@@ -6,19 +6,13 @@ export const ERROR_CODE = {
   NETWORK: -1,
   SYSTEM: -2,
   LITMIT: -3,
-  ACCOUNT_NOT_ACTIVITIES: -4,
-  ACCOUNT_NOT_KYC: -5,
+  NOT_ACTIVED: -4,
+  NOT_KYC: -5,
   PAYMENT_ERROR: -6,
   ERROR_KEY_ENCODE: -7,
   USER_CANCELLED: -8,
   NOT_LOGIN: -9,
   CLOSE_IFRAME: -10
-}
-
-export const AccountStatus = {
-  NOT_ACTIVED: 'NOT_ACTIVED',
-  NOT_KYC: 'NOT_KYC',
-  KYC_OK: 'KYC_OK'
 }
 
 export const LANGUAGES = {
@@ -236,7 +230,7 @@ export default class WebPaymeSDK extends Component {
       this.sendRespone({
         type: 'error',
         error: {
-          code: this.configs.accountStatus,
+          code: ERROR_CODE[this.configs.accountStatus],
           message: this.configs.accountStatus
         }
       })
@@ -262,7 +256,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: this.configs.accountStatus,
+        code: ERROR_CODE[this.configs.accountStatus],
         message: this.configs.accountStatus
       })
       return
@@ -287,7 +281,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: this.configs.accountStatus,
+        code: ERROR_CODE[this.configs.accountStatus],
         message: this.configs.accountStatus
       })
       return
@@ -312,7 +306,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: this.configs.accountStatus,
+        code: ERROR_CODE[this.configs.accountStatus],
         message: this.configs.accountStatus
       })
       return
@@ -335,7 +329,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: this.configs.accountStatus,
+        code: ERROR_CODE[this.configs.accountStatus],
         message: this.configs.accountStatus
       })
       return
@@ -359,7 +353,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: this.configs.accountStatus,
+        code: ERROR_CODE[this.configs.accountStatus],
         message: this.configs.accountStatus
       })
       return
@@ -383,7 +377,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: this.configs.accountStatus,
+        code: ERROR_CODE[this.configs.accountStatus],
         message: this.configs.accountStatus
       })
       return
@@ -405,7 +399,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: this.configs.accountStatus,
+        code: ERROR_CODE[this.configs.accountStatus],
         message: this.configs.accountStatus
       })
       return
