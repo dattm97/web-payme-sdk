@@ -42,8 +42,7 @@ export default class WebPaymeSDK extends Component {
     }
     this.id = 'paymeId'
     this.configs = {}
-    this.width = props.width
-    this.height = props.height
+    this.propStyle = props.propStyle
 
     this.isLogin = false
     this._webPaymeSDK = null
@@ -419,14 +418,16 @@ export default class WebPaymeSDK extends Component {
   render() {
     const { iframeVisible } = this.state
     const { hidden } = iframeVisible
-    const styleVisible = {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      top: 0,
-      left: 0,
-      overflow: 'hidden'
-    }
+    const styleVisible = this.propStyle
+      ? this.propStyle
+      : {
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          top: 0,
+          left: 0,
+          overflow: 'hidden'
+        }
 
     const styleHidden = {
       display: 'none'
