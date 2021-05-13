@@ -279,13 +279,13 @@ export default class WebPaymeSDK extends Component {
       return
     }
 
-    if (!this._checkActiveAndKyc()) {
-      onError({
-        code: ERROR_CODE[this.configs.accountStatus],
-        message: this.configs.accountStatus
-      })
-      return
-    }
+    // if (!this._checkActiveAndKyc()) {
+    //   onError({
+    //     code: ERROR_CODE[this.configs.accountStatus],
+    //     message: this.configs.accountStatus
+    //   })
+    //   return
+    // }
 
     this.setState({
       iframeVisible: { state: true, hidden: false }
