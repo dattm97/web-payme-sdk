@@ -153,8 +153,8 @@ export default class WebPaymeSDK extends Component {
     this._iframe = ifrm
 
     ifrm.setAttribute(`src`, link)
-    ifrm.style.width = this.width ? `${this.width}px` : '100%'
-    ifrm.style.height = this.height ? `${this.height}px` : '100%'
+    ifrm.style.width = '100%'
+    ifrm.style.height = '100%'
     ifrm.style.position = 'relative'
     ifrm.style.top = 0
     ifrm.style.left = 0
@@ -227,12 +227,9 @@ export default class WebPaymeSDK extends Component {
     }
 
     if (!this._checkActiveAndKyc()) {
-      this.sendRespone({
-        type: 'error',
-        error: {
-          code: ERROR_CODE[this.configs.accountStatus],
-          message: this.configs.accountStatus
-        }
+      onError({
+        code: ERROR_CODE[this.configs.accountStatus],
+        message: this.configs.accountStatus
       })
       return
     }
