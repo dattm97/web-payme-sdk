@@ -128,16 +128,11 @@ export default class WebPaymeSDK extends Component {
 
   sendRespone = (data) => {
     if (data?.error) {
-      if (this._onError) {
-        this._onError(data?.error)
-      }
-      this._onError = null
+      if (this._onError) this._onError(data?.error)
     } else if (data?.code === 401) {
       if (this._onError) this._onError(data)
-      this._onError = null
     } else {
       if (this._onSuccess) this._onSuccess(data)
-      this._onSuccess = null
     }
   }
 
