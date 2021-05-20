@@ -43,6 +43,7 @@ export default class WebPaymeSDK extends Component {
     this.id = 'paymeId'
     this.configs = {}
     this.propStyle = props.propStyle
+    this.overlayBackground = props?.overlayBackground ?? false
 
     this.isLogin = false
     this._webPaymeSDK = null
@@ -429,20 +430,36 @@ export default class WebPaymeSDK extends Component {
           overflow: 'hidden'
         }
 
+    const containerStyleVisible = {
+      display: 'block',
+      position: 'fixed',
+      left: 0,
+      top: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.4)'
+    }
+
     const styleHidden = {
       display: 'none'
     }
+
+    const containerStyleHidden = {
+      ...containerStyleVisible,
+      display: 'none'
+    }
+
     const style = hidden ? styleHidden : styleVisible
+    const containerStyle = hidden ? containerStyleHidden : containerStyleVisible
 
     if (!iframeVisible.state) return null
-    return (
-      <div
-        style={{
-          ...style
-          // paddingTop: `${(windowHeight / windowWidth) * 100}%`
-        }}
-        id={this.id}
-      />
+
+    return this.overlayBackground ? (
+      <div style={{ ...containerStyle }}>
+        <div style={{ ...style }} id={this.id} />
+      </div>
+    ) : (
+      <div style={{ ...style }} id={this.id} />
     )
   }
 }
@@ -475,7 +492,7 @@ class PaymeWebSdk {
   getDomain(env) {
     switch (env) {
       case this.ENV.dev:
-        return 'https://dev-sdk.payme.com.vn'
+        return 'https://dev-sdk.payme.vn'
       case this.ENV.sandbox:
         return 'https://sbx-sdk.payme.com.vn'
       case this.ENV.production:
