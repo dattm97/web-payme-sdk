@@ -114,6 +114,14 @@ export default class WebPaymeSDK extends Component {
         this.onCloseIframe()
         this.sendRespone(e.data)
       }
+      if (e.data?.type === 'onDeposit' || e.data?.type === 'onWithDraw') {
+        this.onCloseIframe()
+        const res = { ...e.data }
+        if (e.data?.data?.status === 'FAILED') {
+          res.error = e.data?.data
+        }
+        this.sendRespone(res)
+      }
     }
   }
 
@@ -550,7 +558,8 @@ class PaymeWebSdk {
         type: this.WALLET_ACTIONS.DEPOSIT,
         amount: param.amount,
         description: param.description,
-        extraData: param.extraData
+        extraData: param.extraData,
+        closeWhenDone: param?.closeWhenDone
       }
     }
 
@@ -566,7 +575,8 @@ class PaymeWebSdk {
         type: this.WALLET_ACTIONS.WITHDRAW,
         amount: param.amount,
         description: param.description,
-        extraData: param.extraData
+        extraData: param.extraData,
+        closeWhenDone: param?.closeWhenDone
       }
     }
     const encrypt = await this.encrypt(configs)
