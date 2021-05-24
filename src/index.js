@@ -492,7 +492,7 @@ class PaymeWebSdk {
   getDomain(env) {
     switch (env) {
       case this.ENV.dev:
-        return 'https://dev-sdk.payme.vn'
+        return 'https://dev-sdk.payme.com.vn'
       case this.ENV.sandbox:
         return 'https://sbx-sdk.payme.com.vn'
       case this.ENV.production:
