@@ -29,6 +29,7 @@ const WALLET_ACTIONS = {
   WITHDRAW: 'WITHDRAW',
   DEPOSIT: 'DEPOSIT',
   GET_LIST_SERVICE: 'GET_LIST_SERVICE',
+  OPEN_SERVICE: 'OPEN_SERVICE',
   UTILITY: 'UTILITY',
   GET_LIST_PAYMENT_METHOD: 'GET_LIST_PAYMENT_METHOD',
   PAY: 'PAY'
@@ -109,6 +110,9 @@ export default class WebPaymeSDK extends Component {
         this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.WITHDRAW) {
+        this.sendRespone(e.data)
+      }
+      if (e.data?.type === WALLET_ACTIONS.OPEN_SERVICE) {
         this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD) {
@@ -406,7 +410,7 @@ export default class WebPaymeSDK extends Component {
     this._onError = onError
   }
 
-  openService = async () => {
+  openService = async (serviceCode, onSuccess, onError) => {
     if (!this.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
@@ -424,8 +428,11 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true, hidden: false }
     })
 
-    const iframe = await this._webPaymeSDK.createOpenServiceURL('HOCPHI')
+    const iframe = await this._webPaymeSDK.createOpenServiceURL(serviceCode)
     this.openIframe(iframe)
+
+    this._onSuccess = onSuccess
+    this._onError = onError
   }
 
   getListPaymentMethod = async (onSuccess, onError) => {
