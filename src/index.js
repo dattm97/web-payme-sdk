@@ -145,23 +145,23 @@ export default class WebPaymeSDK extends Component {
     }
   }
 
-  isOnline = (url, onOnline, onDisconnect) => {
+  isOnline = (onOnline, onDisconnect) => {
     var xhr = XMLHttpRequest
       ? new XMLHttpRequest()
-      : new ActiveXObject("Microsoft.XMLHttp");
+      : new ActiveXObject('Microsoft.XMLHttp')
     xhr.onload = function () {
       if (onOnline instanceof Function) {
-        onOnline();
+        onOnline()
       }
-    };
+    }
     xhr.onerror = function () {
       if (onDisconnect instanceof Function) {
-        onDisconnect();
+        onDisconnect()
       }
-    };
-    xhr.open("GET", url, true);
-    xhr.send();
-  };
+    }
+    xhr.open('GET', 'https://jsonplaceholder.typicode.com/posts', true)
+    xhr.send()
+  }
 
   _checkActiveAndKyc = () => {
     if (this.configs?.accountStatus !== 'KYC_OK') {
@@ -172,63 +172,61 @@ export default class WebPaymeSDK extends Component {
 
   openIframe = (link) => {
     this.isOnline(
-      link,
       () => {
-        const ifrm = document.createElement("iframe");
-        this._iframe = ifrm;
+        const ifrm = document.createElement('iframe')
+        this._iframe = ifrm
 
-        ifrm.setAttribute(`src`, link);
-        ifrm.style.width = "100%";
-        ifrm.style.height = "100%";
-        ifrm.style.position = "relative";
-        ifrm.style.top = 0;
-        ifrm.style.left = 0;
-        ifrm.style.right = 0;
-        ifrm.style.bottom = 0;
-        ifrm.style.border = 0;
-        ifrm.allow = "camera *;microphone *";
-        ifrm.referrerPolicy = "origin-when-cross-origin";
-        ifrm.allowpaymentrequest = true;
-        ifrm.allowFullscreen = true;
-        const element = document.getElementById(this.id);
-        element && element.appendChild(ifrm);
+        ifrm.setAttribute(`src`, link)
+        ifrm.style.width = '100%'
+        ifrm.style.height = '100%'
+        ifrm.style.position = 'relative'
+        ifrm.style.top = 0
+        ifrm.style.left = 0
+        ifrm.style.right = 0
+        ifrm.style.bottom = 0
+        ifrm.style.border = 0
+        ifrm.allow = 'camera *;microphone *'
+        ifrm.referrerPolicy = 'origin-when-cross-origin'
+        ifrm.allowpaymentrequest = true
+        ifrm.allowFullscreen = true
+        const element = document.getElementById(this.id)
+        element && element.appendChild(ifrm)
       },
       () => {
         this.sendRespone({
-          error: { code: ERROR_CODE.NETWORK, message: "Network Error!" },
-        });
+          error: { code: ERROR_CODE.NETWORK, message: 'Network Error!' }
+        })
       }
-    );
+    )
   }
 
   openHiddenIframe = (link) => {
     this.isOnline(
-      link,
       () => {
-        const div = document.createElement("div");
-        const ifrm = document.createElement("iframe");
-        this._iframe = ifrm;
+        const div = document.createElement('div')
+        const ifrm = document.createElement('iframe')
+        this._iframe = ifrm
 
-        div.style.visibility = "hidden";
-        div.style.display = "block";
-        div.style.width = 0;
-        div.style.height = 0;
+        div.style.visibility = 'hidden'
+        div.style.display = 'block'
+        div.style.width = 0
+        div.style.height = 0
 
-        ifrm.setAttribute(`src`, link);
-        ifrm.style.width = 0;
-        ifrm.style.height = 0;
-        ifrm.style.border = 0;
-        const element = document.getElementById(this.id);
+        ifrm.setAttribute(`src`, link)
+        ifrm.style.width = 0
+        ifrm.style.height = 0
+        ifrm.style.border = 0
+        const element = document.getElementById(this.id)
 
-        div.appendChild(ifrm);
-        element && element.appendChild(div);
+        div.appendChild(ifrm)
+        element && element.appendChild(div)
       },
       () => {
         this.sendRespone({
-          error: { code: ERROR_CODE.NETWORK, message: "Network Error!" },
-        });
+          error: { code: ERROR_CODE.NETWORK, message: 'Network Error!' }
+        })
       }
-    );
+    )
   }
 
   login = async (configs, onSuccess, onError) => {
