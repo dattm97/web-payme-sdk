@@ -469,7 +469,7 @@ export default class WebPaymeSDK extends Component {
     this._onError = onError
   }
 
-  getListPaymentMethod = async (onSuccess, onError) => {
+  getListPaymentMethod = async (param, onSuccess, onError) => {
     if (!this.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
@@ -486,7 +486,7 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true, hidden: true }
     })
-    const iframe = await this._webPaymeSDK.createGetListPaymentMethodURL()
+    const iframe = await this._webPaymeSDK.createGetListPaymentMethodURL(param)
     this.openHiddenIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -732,11 +732,12 @@ class PaymeWebSdk {
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
 
-  async createGetListPaymentMethodURL() {
+  async createGetListPaymentMethodURL(param) {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD
+        type: this.WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD,
+        storeId: param.storeId
       }
     }
     const encrypt = await this.encrypt(configs)

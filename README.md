@@ -266,6 +266,7 @@ refWebPaymeSDK.current.openService(
 Hàm này được gọi khi từ app tích hợp khi muốn lấy danh sách các phương thức thanh toán mà PayME cung cấp vs từng tài khoản sau khi tài khoản đã kích hoạt và định danh thành công, dùng để truyền vào hàm pay() để chọn trực tiếp phương thức thanh toán mà app đối tác muốn
 ```javascript
 refWebPaymeSDK.current.getListPaymentMethod(
+   storeId,
    (response) => {
       // onSuccess
    },
@@ -274,6 +275,12 @@ refWebPaymeSDK.current.getListPaymentMethod(
    }
 )
 ```
+
+| **Tham số** | **Bắt buộc** | **Giải thích** |
+| :----------------------------------------------------------- | :----------- | :----------------------------------------------------------- |
+| storeId | Yes| ID của store phía cổng thanh toán thực hiên giao dịch thanh toán. |
+| onSuccess | Yes | Dùng để bắt callback khi thực hiện thành công từ PayME SDK |
+| onError | Yes | Dùng để bắt callback khi có lỗi xảy ra trong quá trình gọi PayME SDK |
 
 #### pay - Thanh toán
 Hàm này được dùng khi app cần thanh toán 1 khoản tiền từ ví PayME đã được kích hoạt.
@@ -302,7 +309,7 @@ refWebPaymeSDK.current.pay(
 | amount | Yes | Số tiền cần thanh toán bên app truyền qua cho SDK. |
 | note | No | Mô tả giao dịch từ phía đối tác. |
 | orderId | Yes | Mã giao dịch của đối tác, cần duy nhất trên mỗi giao dịch. |
-| storeId | Yes | ID của store phía công thanh toán thực hiên giao dịch thanh toán. |
+| storeId | Yes | ID của store phía cổng thanh toán thực hiên giao dịch thanh toán. |
 | isShowResultUI | No | Option hiển thị UI kết quả thanh toán. |
 | method | No | (Tùy chọn có thể null) cung cấp ở hàm getPaymentMethods() để chọn trực tiếp phương thức thanh toán mà app đối tác muốn |
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện giao dịch thành công từ PayME SDK |
