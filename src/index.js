@@ -28,6 +28,7 @@ const WALLET_ACTIONS = {
   OPEN_WALLET: 'OPEN_WALLET',
   WITHDRAW: 'WITHDRAW',
   DEPOSIT: 'DEPOSIT',
+  TRANSFER: 'TRANSFER',
   GET_LIST_SERVICE: 'GET_LIST_SERVICE',
   OPEN_SERVICE: 'OPEN_SERVICE',
   UTILITY: 'UTILITY',
@@ -63,7 +64,12 @@ export default class WebPaymeSDK extends Component {
           this._webPaymeSDK = new PaymeWebSdk(newConfigs)
           this.isLogin = true
         }
-        this.sendRespone(e.data)
+        const res = {
+          ...e.data,
+          data: { accountStatus: e.data?.data?.accountStatus }
+        }
+
+        this.sendRespone(res)
       }
       if (e.data.type === WALLET_ACTIONS.RELOGIN) {
         if (e.data?.data) {
@@ -110,6 +116,9 @@ export default class WebPaymeSDK extends Component {
         this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.WITHDRAW) {
+        this.sendRespone(e.data)
+      }
+      if (e.data?.type === WALLET_ACTIONS.TRANSFER) {
         this.sendRespone(e.data)
       }
       if (e.data?.type === WALLET_ACTIONS.OPEN_SERVICE) {
@@ -308,6 +317,31 @@ export default class WebPaymeSDK extends Component {
     })
 
     const iframe = await this._webPaymeSDK.createWithdrawURL(param)
+    this.openIframe(iframe)
+
+    this._onSuccess = onSuccess
+    this._onError = onError
+  }
+
+  transfer = async (param, onSuccess, onError) => {
+    if (!this.isLogin) {
+      onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
+      return
+    }
+
+    if (!this._checkActiveAndKyc()) {
+      onError({
+        code: ERROR_CODE[this.configs.accountStatus],
+        message: this.configs.accountStatus
+      })
+      return
+    }
+
+    this.setState({
+      iframeVisible: { state: true, hidden: false }
+    })
+
+    const iframe = await this._webPaymeSDK.createTransferURL(param)
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -515,6 +549,7 @@ class PaymeWebSdk {
     OPEN_WALLET: 'OPEN_WALLET',
     WITHDRAW: 'WITHDRAW',
     DEPOSIT: 'DEPOSIT',
+    TRANSFER: 'TRANSFER',
     GET_LIST_SERVICE: 'GET_LIST_SERVICE',
     UTILITY: 'UTILITY',
     GET_LIST_PAYMENT_METHOD: 'GET_LIST_PAYMENT_METHOD',
@@ -617,8 +652,6 @@ class PaymeWebSdk {
       actions: {
         type: this.WALLET_ACTIONS.DEPOSIT,
         amount: param.amount,
-        description: param.description,
-        extraData: param.extraData,
         closeWhenDone: param?.closeWhenDone
       }
     }
@@ -634,8 +667,21 @@ class PaymeWebSdk {
       actions: {
         type: this.WALLET_ACTIONS.WITHDRAW,
         amount: param.amount,
+        closeWhenDone: param?.closeWhenDone
+      }
+    }
+    const encrypt = await this.encrypt(configs)
+
+    return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
+  }
+
+  async createTransferURL(param) {
+    const configs = {
+      ...this.configs,
+      actions: {
+        type: this.WALLET_ACTIONS.TRANSFER,
+        amount: param.amount,
         description: param.description,
-        extraData: param.extraData,
         closeWhenDone: param?.closeWhenDone
       }
     }
