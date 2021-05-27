@@ -168,8 +168,6 @@ refWebPaymeSDK.current.openWallet(
 refWebPaymeSDK.current?.deposit(
    {
       amount: Number,
-      description: String,
-      extraData: String,
       closeWhenDone: Boolean
    },
    (response) => {
@@ -192,8 +190,6 @@ refWebPaymeSDK.current?.deposit(
 refWebPaymeSDK.current?.withdraw(
    {
       amount: Number,
-      description: String,
-      extraData: String,
       closeWhenDone: Boolean
    },
    (response) => {
