@@ -213,7 +213,7 @@ refWebPaymeSDK.current?.withdraw(
 
 #### transfer - Chuyển tiền
 ```javascript
-refWebPaymeSDK.current?.withdraw(
+refWebPaymeSDK.current?.transfer(
    {
       amount: Number,
       description: String
@@ -228,7 +228,7 @@ refWebPaymeSDK.current?.withdraw(
 ```
 | **Tham số** | **Bắt buộc** | **Giải thích** |
 | :----------------------------------------------------------- | :----------- | :----------------------------------------------------------- |
-| amount | Yes| Dùng trong trường hợp action là Deposit/Withdraw thì truyền vào số tiền |
+| amount | Yes| Dùng trong trường hợp action là Deposit/Withdraw/Transfer thì truyền vào số tiền |
 | description | No| Nội dung chuyển tiền |
 | closeWhenDone | No | true: Đóng SDK khi hoàn tất giao dịch |
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện giao dịch thành công từ PayME SDK |
