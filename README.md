@@ -286,6 +286,9 @@ refWebPaymeSDK.current.getListPaymentMethod(
 
 #### pay - Thanh toán
 Hàm này được dùng khi app cần thanh toán 1 khoản tiền từ ví PayME đã được kích hoạt.
+- Khi thanh toán bằng ví PayME thì yêu cầu tài khoản đã kích hoạt,định danh và số dư trong ví phải lớn hơn số tiền thanh toán
+- Thông tin tài khoản lấy qua hàm <code>getAccountInfo()</code>
+- Thông tin số dư lấy qua hàm <code>getWalletInfo()</code>
 ```javascript
 const  data = {
   amount:  Number,
