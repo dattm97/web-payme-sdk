@@ -418,7 +418,7 @@ export default class WebPaymeSDK extends Component {
             }
           )
         }
-        return
+        break
       }
       default:
         break
