@@ -394,11 +394,13 @@ export default class WebPaymeSDK extends Component {
           code: ERROR_CODE.NOT_ACTIVED,
           message: 'Tài khoản chưa được active!'
         })
+        return
       } else if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_KYC) {
         onError({
           code: ERROR_CODE.NOT_KYC,
           message: 'Tài khoản chưa được định danh!'
         })
+        return
       } else {
         const res = await this.getBalanceInternal()
         if (res?.status) {
@@ -407,12 +409,14 @@ export default class WebPaymeSDK extends Component {
               code: ERROR_CODE.BALANCE_ERROR,
               message: 'Số dư ví PayME không đủ'
             })
+            return
           }
         } else {
           onError({
             code: ERROR_CODE.SYSTEM,
             message: res?.error?.message ?? 'Có lỗi xảy ra'
           })
+          return
         }
       }
     }
