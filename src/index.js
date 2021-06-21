@@ -1136,6 +1136,22 @@ export default class WebPaymeSDK extends Component {
                   'Có lỗi từ máy chủ hệ thống'
               })
             }
+          } else {
+            if (responseAccountInit.response[0]?.extensions?.code === 401) {
+              onError({
+                code: ERROR_CODE.EXPIRED,
+                message:
+                  responseAccountInit.response[0]?.extensions?.message ??
+                  'Thông tin  xác thực không hợp lệ'
+              })
+            } else {
+              onError({
+                code: ERROR_CODE.SYSTEM,
+                message:
+                  responseAccountInit.response.message ??
+                  'Có lỗi từ máy chủ hệ thống'
+              })
+            }
           }
         } else {
           onError({
@@ -1146,13 +1162,21 @@ export default class WebPaymeSDK extends Component {
           })
         }
       } else {
-        onError({
-          code: ERROR_CODE.SYSTEM,
-          message:
-            responseClientRegister.response[0]?.message ??
-            responseClientRegister.response.message ??
-            'Có lỗi từ máy chủ hệ thống'
-        })
+        if (responseClientRegister.response[0]?.extensions?.code === 401) {
+          onError({
+            code: ERROR_CODE.EXPIRED,
+            message:
+              responseClientRegister.response[0]?.extensions?.message ??
+              'Thông tin  xác thực không hợp lệ'
+          })
+        } else {
+          onError({
+            code: ERROR_CODE.SYSTEM,
+            message:
+              responseClientRegister.response.message ??
+              'Có lỗi từ máy chủ hệ thống'
+          })
+        }
       }
     } catch (error) {
       onError({
@@ -1297,13 +1321,21 @@ export default class WebPaymeSDK extends Component {
           return
         }
       } else {
-        onError({
-          code: ERROR_CODE.SYSTEM,
-          message:
-            responseGetMerchantInfo.response[0]?.message ??
-            responseGetMerchantInfo.response.message ??
-            'Có lỗi từ máy chủ hệ thống'
-        })
+        if (responseGetMerchantInfo.response[0]?.extensions?.code === 401) {
+          onError({
+            code: ERROR_CODE.EXPIRED,
+            message:
+              responseGetMerchantInfo.response[0]?.extensions?.message ??
+              'Thông tin  xác thực không hợp lệ'
+          })
+        } else {
+          onError({
+            code: ERROR_CODE.SYSTEM,
+            message:
+              responseGetMerchantInfo.response.message ??
+              'Có lỗi từ máy chủ hệ thống'
+          })
+        }
         return
       }
     }
