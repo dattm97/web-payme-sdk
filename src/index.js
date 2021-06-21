@@ -1148,7 +1148,7 @@ export default class WebPaymeSDK extends Component {
               onError({
                 code: ERROR_CODE.SYSTEM,
                 message:
-                  responseAccountInit.response.message ??
+                  responseAccountInit?.response?.message ??
                   'Có lỗi từ máy chủ hệ thống'
               })
             }
@@ -1173,7 +1173,7 @@ export default class WebPaymeSDK extends Component {
           onError({
             code: ERROR_CODE.SYSTEM,
             message:
-              responseClientRegister.response.message ??
+              responseClientRegister?.response?.message ??
               'Có lỗi từ máy chủ hệ thống'
           })
         }
@@ -1295,7 +1295,6 @@ export default class WebPaymeSDK extends Component {
       )
 
       if (responseGetMerchantInfo.status) {
-        console.log('response111', responseGetMerchantInfo)
         if (
           responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
             ?.succeeded
@@ -1332,7 +1331,7 @@ export default class WebPaymeSDK extends Component {
           onError({
             code: ERROR_CODE.SYSTEM,
             message:
-              responseGetMerchantInfo.response.message ??
+              responseGetMerchantInfo?.response?.message ??
               'Có lỗi từ máy chủ hệ thống'
           })
         }
@@ -1424,7 +1423,9 @@ export default class WebPaymeSDK extends Component {
         } else {
           onError({
             code: ERROR_CODE.SYSTEM,
-            message: 'Có lỗi từ máy chủ hệ thống'
+            message:
+              responseGetWalletInfo?.response?.message ??
+              'Có lỗi từ máy chủ hệ thống'
           })
         }
       }
@@ -1473,12 +1474,12 @@ export default class WebPaymeSDK extends Component {
         accessToken: this.configs.accessToken,
         appId: this.configs?.xApi ?? this.configs?.appId
       }
-      const responseGsetSettingServiceMain = await this.getSettingServiceMain(
+      const responseGetSettingServiceMain = await this.getSettingServiceMain(
         params,
         keys
       )
-      if (responseGsetSettingServiceMain.status) {
-        const service = responseGsetSettingServiceMain.response?.Setting?.configs?.filter(
+      if (responseGetSettingServiceMain.status) {
+        const service = responseGetSettingServiceMain.response?.Setting?.configs?.filter(
           (itemSetting) => itemSetting?.key === 'service.main.visible'
         )
         const valueStr = service[0]?.value ?? ''
@@ -1486,18 +1487,20 @@ export default class WebPaymeSDK extends Component {
         onSuccess(list)
       } else {
         if (
-          responseGsetSettingServiceMain.response[0]?.extensions?.code === 401
+          responseGetSettingServiceMain.response[0]?.extensions?.code === 401
         ) {
           onError({
             code: ERROR_CODE.EXPIRED,
             message:
-              responseGsetSettingServiceMain.response[0]?.extensions?.message ??
+              responseGetSettingServiceMain.response[0]?.extensions?.message ??
               'Thông tin  xác thực không hợp lệ'
           })
         } else {
           onError({
             code: ERROR_CODE.SYSTEM,
-            message: 'Có lỗi từ máy chủ hệ thống'
+            message:
+              responseGetSettingServiceMain?.response?.message ??
+              'Có lỗi từ máy chủ hệ thống'
           })
         }
       }
@@ -1547,7 +1550,9 @@ export default class WebPaymeSDK extends Component {
         } else {
           onError({
             code: ERROR_CODE.SYSTEM,
-            message: 'Có lỗi từ máy chủ hệ thống'
+            message:
+              responseFindAccount?.response?.message ??
+              'Có lỗi từ máy chủ hệ thống'
           })
         }
       }
