@@ -534,14 +534,14 @@ export default class WebPaymeSDK extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      iframeVisible: { state: false, hidden: false } // Biến dùng để bật tắt iFreame
+      iframeVisible: { state: false, hidden: false }, // Biến dùng để bật tắt iFreame
+      isLogin: false
     }
     this.id = 'paymeId'
-    this.configs = props?.configs
+    this.configs = props?.config
     this.propStyle = props.propStyle
     this.overlayBackground = props?.overlayBackground ?? false
 
-    this.isLogin = false
     this._webPaymeSDK = null
     this._iframe = null
 
@@ -556,7 +556,9 @@ export default class WebPaymeSDK extends Component {
           this.configs = newConfigs
           /* eslint-disable no-undef */
           this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-          this.isLogin = true
+          this.setState({
+            isLogin: true
+          })
         }
         const res = {
           ...e.data,
@@ -574,7 +576,9 @@ export default class WebPaymeSDK extends Component {
           this.configs = newConfigs
           /* eslint-disable no-undef */
           this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-          this.isLogin = true
+          this.setState({
+            isLogin: true
+          })
         }
       }
       if (e.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
@@ -591,7 +595,9 @@ export default class WebPaymeSDK extends Component {
       if (e.data?.type === 'error') {
         if (e.data?.code === 401) {
           this.onCloseIframe()
-          this.isLogin = false
+          this.setState({
+            isLogin: false
+          })
         }
         this.sendRespone(e.data)
       }
@@ -631,6 +637,24 @@ export default class WebPaymeSDK extends Component {
         this.sendRespone(res)
       }
     }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.config !== this.props.config) {
+      if (!this.props.config.connectToken) {
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({
+          isLogin: false
+        })
+      }
+      this.configs = this.props.config
+    }
+  }
+
+  componentWillUnmount() {
+    this.setState({
+      isLogin: false
+    })
   }
 
   onCloseIframe = () => {
@@ -1022,172 +1046,187 @@ export default class WebPaymeSDK extends Component {
   }
 
   login = async (configs, onSuccess, onError) => {
-    this.setState({
-      iframeVisible: { state: true, hidden: true }
-    })
     this.configs = configs
-    try {
-      const keys = {
-        env: configs.env,
-        publicKey: configs.publicKey,
-        privateKey: configs.privateKey,
-        accessToken: '',
-        appId: configs.appId ?? configs.xApi
-      }
-      const responseClientRegister = await this.clientRegister(
-        {
-          deviceId: configs?.clientId ?? configs?.deviceId
-        },
-        keys
-      )
-      if (responseClientRegister.status) {
-        if (responseClientRegister.response?.Client?.Register?.succeeded) {
-          const responseAccountInit = await this.accountInit(
-            {
-              appToken: configs.appToken,
-              connectToken: configs.connectToken,
-              clientId:
-                responseClientRegister.response?.Client?.Register?.clientId
-            },
-            keys
-          )
-          if (responseAccountInit.status) {
-            const {
-              handShake,
-              accessToken = '',
-              phone = '',
-              storeName = '',
-              storeImage = '',
-              updateToken,
-              kyc
-            } = responseAccountInit.response?.OpenEWallet?.Init ?? {}
-            let accountStatus = ACCOUNT_STATUS.NOT_ACTIVED
+    if (configs?.connectToken) {
+      // Check trường hợp account đang login hay không? (Có connectToken có nghĩa là đang login)
+      try {
+        const keys = {
+          env: configs.env,
+          publicKey: configs.publicKey,
+          privateKey: configs.privateKey,
+          accessToken: '',
+          appId: configs.appId ?? configs.xApi
+        }
+        const responseClientRegister = await this.clientRegister(
+          {
+            deviceId: configs?.clientId ?? configs?.deviceId
+          },
+          keys
+        )
+        if (responseClientRegister.status) {
+          if (responseClientRegister.response?.Client?.Register?.succeeded) {
+            const responseAccountInit = await this.accountInit(
+              {
+                appToken: configs.appToken,
+                connectToken: configs.connectToken,
+                clientId:
+                  responseClientRegister.response?.Client?.Register?.clientId
+              },
+              keys
+            )
+            if (responseAccountInit.status) {
+              const {
+                handShake,
+                accessToken = '',
+                phone = '',
+                storeName = '',
+                storeImage = '',
+                updateToken,
+                kyc
+              } = responseAccountInit.response?.OpenEWallet?.Init ?? {}
+              let accountStatus = ACCOUNT_STATUS.NOT_ACTIVED
 
-            // if (
-            //   configs.phone &&
-            //   convertPhoneNumberNation(phone) !==
-            //     convertPhoneNumberNation(configs.phone)
-            // ) {
-            //   onError({
-            //     code: ERROR_CODE.SYSTEM,
-            //     message: 'Số điện thoại không khớp với số đã đăng kí!',
-            //   });
-            // } else
-            if (responseAccountInit.response?.OpenEWallet?.Init?.succeeded) {
-              if (
-                responseAccountInit.response?.OpenEWallet?.Init?.kyc &&
-                responseAccountInit.response?.OpenEWallet?.Init?.kyc?.kycId &&
-                responseAccountInit.response?.OpenEWallet?.Init?.kyc?.state ===
-                  'APPROVED'
-              ) {
-                accountStatus = ACCOUNT_STATUS.KYC_OK
+              // if (
+              //   configs.phone &&
+              //   convertPhoneNumberNation(phone) !==
+              //     convertPhoneNumberNation(configs.phone)
+              // ) {
+              //   onError({
+              //     code: ERROR_CODE.SYSTEM,
+              //     message: 'Số điện thoại không khớp với số đã đăng kí!',
+              //   });
+              // } else
+              if (responseAccountInit.response?.OpenEWallet?.Init?.succeeded) {
+                if (
+                  responseAccountInit.response?.OpenEWallet?.Init?.kyc &&
+                  responseAccountInit.response?.OpenEWallet?.Init?.kyc?.kycId &&
+                  responseAccountInit.response?.OpenEWallet?.Init?.kyc
+                    ?.state === 'APPROVED'
+                ) {
+                  accountStatus = ACCOUNT_STATUS.KYC_OK
+                } else {
+                  accountStatus = ACCOUNT_STATUS.NOT_KYC
+                }
+                const responseLogin = {
+                  data: {
+                    accountStatus,
+                    handShake,
+                    accessToken,
+                    storeName,
+                    storeImage,
+                    phone: configs.phone ? configs.phone : phone,
+                    kyc,
+                    clientId:
+                      responseClientRegister.response?.Client?.Register
+                        ?.clientId
+                  }
+                }
+                const newConfigs = {
+                  ...this.configs,
+                  ...responseLogin.data
+                }
+                this.configs = newConfigs
+                this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+                this.setState({
+                  isLogin: true
+                })
+                onSuccess({ accountStatus: responseLogin.data.accountStatus })
+              } else if (!accessToken && updateToken) {
+                const responseLogin = {
+                  data: {
+                    accountStatus,
+                    handShake,
+                    accessToken,
+                    storeName,
+                    storeImage,
+                    phone: configs.phone ? configs.phone : phone,
+                    kyc,
+                    clientId:
+                      responseClientRegister.response?.Client?.Register
+                        ?.clientId
+                  }
+                }
+                const newConfigs = {
+                  ...this.configs,
+                  ...responseLogin.data,
+                  dataInit:
+                    responseAccountInit.response?.OpenEWallet?.Init ?? {}
+                }
+                this.configs = newConfigs
+                this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+                this.setState({
+                  isLogin: true
+                })
+                onSuccess({ accountStatus: responseLogin.data.accountStatus })
               } else {
-                accountStatus = ACCOUNT_STATUS.NOT_KYC
+                onError({
+                  code: ERROR_CODE.SYSTEM,
+                  message:
+                    responseAccountInit.response?.OpenEWallet?.Init?.message ??
+                    'Có lỗi từ máy chủ hệ thống'
+                })
               }
-              const responseLogin = {
-                data: {
-                  accountStatus,
-                  handShake,
-                  accessToken,
-                  storeName,
-                  storeImage,
-                  phone: configs.phone ? configs.phone : phone,
-                  kyc,
-                  clientId:
-                    responseClientRegister.response?.Client?.Register?.clientId
-                }
-              }
-              const newConfigs = {
-                ...this.configs,
-                ...responseLogin.data
-              }
-              this.configs = newConfigs
-              this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-              this.isLogin = true
-              onSuccess({ accountStatus: responseLogin.data.accountStatus })
-            } else if (!accessToken && updateToken) {
-              const responseLogin = {
-                data: {
-                  accountStatus,
-                  handShake,
-                  accessToken,
-                  storeName,
-                  storeImage,
-                  phone: configs.phone ? configs.phone : phone,
-                  kyc,
-                  clientId:
-                    responseClientRegister.response?.Client?.Register?.clientId
-                }
-              }
-              const newConfigs = {
-                ...this.configs,
-                ...responseLogin.data,
-                dataInit: responseAccountInit.response?.OpenEWallet?.Init ?? {}
-              }
-              this.configs = newConfigs
-              this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-              this.isLogin = true
-              onSuccess({ accountStatus: responseLogin.data.accountStatus })
             } else {
-              onError({
-                code: ERROR_CODE.SYSTEM,
-                message:
-                  responseAccountInit.response?.OpenEWallet?.Init?.message ??
-                  'Có lỗi từ máy chủ hệ thống'
-              })
+              if (responseAccountInit.response[0]?.extensions?.code === 401) {
+                onError({
+                  code: ERROR_CODE.EXPIRED,
+                  message:
+                    responseAccountInit.response[0]?.extensions?.message ??
+                    'Thông tin  xác thực không hợp lệ'
+                })
+              } else {
+                onError({
+                  code: ERROR_CODE.SYSTEM,
+                  message:
+                    responseAccountInit?.response?.message ??
+                    'Có lỗi từ máy chủ hệ thống'
+                })
+              }
             }
           } else {
-            if (responseAccountInit.response[0]?.extensions?.code === 401) {
-              onError({
-                code: ERROR_CODE.EXPIRED,
-                message:
-                  responseAccountInit.response[0]?.extensions?.message ??
-                  'Thông tin  xác thực không hợp lệ'
-              })
-            } else {
-              onError({
-                code: ERROR_CODE.SYSTEM,
-                message:
-                  responseAccountInit?.response?.message ??
-                  'Có lỗi từ máy chủ hệ thống'
-              })
-            }
+            onError({
+              code: ERROR_CODE.SYSTEM,
+              message:
+                responseClientRegister.response?.Client?.Register?.message ??
+                'Có lỗi từ máy chủ hệ thống'
+            })
           }
         } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message:
-              responseClientRegister.response?.Client?.Register?.message ??
-              'Có lỗi từ máy chủ hệ thống'
-          })
+          if (responseClientRegister.response[0]?.extensions?.code === 401) {
+            onError({
+              code: ERROR_CODE.EXPIRED,
+              message:
+                responseClientRegister.response[0]?.extensions?.message ??
+                'Thông tin  xác thực không hợp lệ'
+            })
+          } else {
+            onError({
+              code: ERROR_CODE.SYSTEM,
+              message:
+                responseClientRegister?.response?.message ??
+                'Có lỗi từ máy chủ hệ thống'
+            })
+          }
         }
-      } else {
-        if (responseClientRegister.response[0]?.extensions?.code === 401) {
-          onError({
-            code: ERROR_CODE.EXPIRED,
-            message:
-              responseClientRegister.response[0]?.extensions?.message ??
-              'Thông tin  xác thực không hợp lệ'
-          })
-        } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message:
-              responseClientRegister?.response?.message ??
-              'Có lỗi từ máy chủ hệ thống'
-          })
-        }
+      } catch (error) {
+        onError({
+          code: ERROR_CODE.SYSTEM,
+          message: error.message ?? 'Có lỗi xảy ra'
+        })
       }
-    } catch (error) {
+    } else {
       onError({
         code: ERROR_CODE.SYSTEM,
-        message: error.message ?? 'Có lỗi xảy ra'
+        message: 'Thiếu thông tin connectToken'
+      })
+      this.setState({
+        isLogin: false
       })
     }
   }
 
   openWallet = async (onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1203,7 +1242,7 @@ export default class WebPaymeSDK extends Component {
   }
 
   deposit = async (param, onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1228,7 +1267,7 @@ export default class WebPaymeSDK extends Component {
   }
 
   withdraw = async (param, onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1253,7 +1292,7 @@ export default class WebPaymeSDK extends Component {
   }
 
   transfer = async (param, onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1278,17 +1317,17 @@ export default class WebPaymeSDK extends Component {
   }
 
   pay = async (param, onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       const keys = {
-        env: param?.configs.env,
-        publicKey: param?.configs.publicKey,
-        privateKey: param?.configs.privateKey,
-        accessToken: param?.configs.accessToken,
-        appId: param?.configs?.xApi ?? this.configs?.appId
+        env: this.configs?.env,
+        publicKey: this.configs?.publicKey,
+        privateKey: this.configs?.privateKey,
+        accessToken: this.configs?.accessToken,
+        appId: this.configs?.xApi ?? this.configs?.appId
       }
       const responseGetMerchantInfo = await this.getMerchantInfo(
         {
-          appId: param?.configs?.xApi ?? param?.configs?.appId,
+          appId: this.configs?.xApi ?? this.configs?.appId,
           storeId: param?.storeId
         },
         keys
@@ -1300,7 +1339,7 @@ export default class WebPaymeSDK extends Component {
             ?.succeeded
         ) {
           const newConfigs = {
-            ...param?.configs,
+            ...this.configs,
             payStatus: ACCOUNT_STATUS.NOT_ACTIVED,
             storeName:
               responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
@@ -1389,7 +1428,7 @@ export default class WebPaymeSDK extends Component {
   }
 
   getBalance = async (onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1451,7 +1490,7 @@ export default class WebPaymeSDK extends Component {
   }
 
   getListService = async (onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1513,7 +1552,7 @@ export default class WebPaymeSDK extends Component {
   }
 
   getAccountInfo = async (onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1565,7 +1604,7 @@ export default class WebPaymeSDK extends Component {
   }
 
   openService = async (serviceCode, onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1590,7 +1629,7 @@ export default class WebPaymeSDK extends Component {
   }
 
   getListPaymentMethod = async (param, onSuccess, onError) => {
-    if (!this.isLogin) {
+    if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
