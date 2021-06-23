@@ -1001,7 +1001,7 @@ export default class WebPaymeSDK extends Component {
         ifrm.style.right = 0
         ifrm.style.bottom = 0
         ifrm.style.border = 0
-        ifrm.allow = 'camera *;microphone *'
+        ifrm.allow = 'clipboard-read;clipboard-write;camera *;microphone *'
         ifrm.referrerPolicy = 'origin-when-cross-origin'
         ifrm.allowpaymentrequest = true
         ifrm.allowFullscreen = true
