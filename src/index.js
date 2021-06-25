@@ -40,7 +40,8 @@ const WALLET_ACTIONS = {
   OPEN_SERVICE: 'OPEN_SERVICE',
   UTILITY: 'UTILITY',
   GET_LIST_PAYMENT_METHOD: 'GET_LIST_PAYMENT_METHOD',
-  PAY: 'PAY'
+  PAY: 'PAY',
+  SCAN_QR_CODE: 'SCAN_QR_CODE'
 }
 
 const METHOD_TYPE = {
@@ -205,6 +206,24 @@ const SQL_GET_MERCHANT_INFO = `mutation Mutation($getInfoMerchantInput: OpenEWal
     }
   }
 }`
+
+const SQL_DETECT_QR_CODE = `mutation DetectDataQRCode($input: OpenEWalletPaymentDetectInput!) {
+  OpenEWallet {
+    Payment {
+      Detect (input: $input) {
+        succeeded
+        message
+        type
+        storeId
+        action
+        amount
+        note
+        orderId
+      }
+    }
+  }
+}`
+
 class MeAPI extends Component {
   constructor(
     config = {
@@ -612,6 +631,9 @@ export default class WebPaymeSDK extends Component {
       if (e.data?.type === WALLET_ACTIONS.PAY) {
         this.sendRespone(e.data)
       }
+      if (e.data?.type === WALLET_ACTIONS.SCAN_QR_CODE) {
+        this.sendRespone(e.data)
+      }
       if (e.data?.type === WALLET_ACTIONS.DEPOSIT) {
         this.sendRespone(e.data)
       }
@@ -869,6 +891,20 @@ export default class WebPaymeSDK extends Component {
     return this.handleResponse(res)
   }
 
+  async detectQRString(params, keys) {
+    const res = await this.callGraphql(
+      SQL_DETECT_QR_CODE,
+      {
+        input: {
+          clientId: params?.clientId,
+          qrContent: params?.qrContent
+        }
+      },
+      keys
+    )
+    return this.handleResponse(res)
+  }
+
   async callApiRSA({
     env,
     domain,
@@ -993,6 +1029,10 @@ export default class WebPaymeSDK extends Component {
         this._iframe = ifrm
 
         ifrm.setAttribute(`src`, link)
+        ifrm.setAttribute(
+          `sandbox`,
+          'allow-same-origin allow-scripts allow-popups allow-forms'
+        )
         ifrm.style.width = '100%'
         ifrm.style.height = '100%'
         ifrm.style.position = 'relative'
@@ -1172,7 +1212,7 @@ export default class WebPaymeSDK extends Component {
                   code: ERROR_CODE.EXPIRED,
                   message:
                     responseAccountInit.response[0]?.extensions?.message ??
-                    'Thông tin  xác thực không hợp lệ'
+                    'Thông tin xác thực không hợp lệ'
                 })
               } else {
                 onError({
@@ -1197,7 +1237,7 @@ export default class WebPaymeSDK extends Component {
               code: ERROR_CODE.EXPIRED,
               message:
                 responseClientRegister.response[0]?.extensions?.message ??
-                'Thông tin  xác thực không hợp lệ'
+                'Thông tin xác thực không hợp lệ'
             })
           } else {
             onError({
@@ -1360,7 +1400,7 @@ export default class WebPaymeSDK extends Component {
             code: ERROR_CODE.EXPIRED,
             message:
               responseClientRegister.response[0]?.extensions?.message ??
-              'Thông tin  xác thực không hợp lệ'
+              'Thông tin xác thực không hợp lệ'
           })
         } else {
           onError({
@@ -1387,7 +1427,7 @@ export default class WebPaymeSDK extends Component {
         ) {
           const newConfigs = {
             ...this.configs,
-            payStatus: ACCOUNT_STATUS.NOT_ACTIVED,
+            accountStatus: ACCOUNT_STATUS.NOT_ACTIVED,
             storeName:
               responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
                 ?.merchantName,
@@ -1411,7 +1451,7 @@ export default class WebPaymeSDK extends Component {
             code: ERROR_CODE.EXPIRED,
             message:
               responseGetMerchantInfo.response[0]?.extensions?.message ??
-              'Thông tin  xác thực không hợp lệ'
+              'Thông tin xác thực không hợp lệ'
           })
         } else {
           onError({
@@ -1474,6 +1514,185 @@ export default class WebPaymeSDK extends Component {
     this._onError = onError
   }
 
+  scanQR = async (onSuccess, onError) => {
+    if (!this.state.isLogin) {
+      const keys = {
+        env: this.configs?.env,
+        publicKey: this.configs?.publicKey,
+        privateKey: this.configs?.privateKey,
+        accessToken: this.configs?.accessToken,
+        appId: this.configs?.xApi ?? this.configs?.appId
+      }
+      const responseClientRegister = await this.clientRegister(
+        {
+          deviceId: this.configs?.clientId ?? this.configs?.deviceId
+        },
+        keys
+      )
+      if (responseClientRegister.status) {
+        if (responseClientRegister.response?.Client?.Register?.succeeded) {
+          const response = {
+            data: {
+              clientId:
+                responseClientRegister.response?.Client?.Register?.clientId
+            }
+          }
+          const newConfigs = {
+            ...this.configs,
+            ...response.data,
+            accountStatus: ACCOUNT_STATUS.NOT_ACTIVED
+          }
+          this.configs = newConfigs
+          this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+        } else {
+          onError({
+            code: ERROR_CODE.SYSTEM,
+            message:
+              responseClientRegister.response?.Client?.Register?.message ??
+              'Có lỗi từ máy chủ hệ thống'
+          })
+          return
+        }
+      } else {
+        if (responseClientRegister.response[0]?.extensions?.code === 401) {
+          onError({
+            code: ERROR_CODE.EXPIRED,
+            message:
+              responseClientRegister.response[0]?.extensions?.message ??
+              'Thông tin xác thực không hợp lệ'
+          })
+        } else {
+          onError({
+            code: ERROR_CODE.SYSTEM,
+            message:
+              responseClientRegister?.response?.message ??
+              'Có lỗi từ máy chủ hệ thống'
+          })
+        }
+        return
+      }
+    }
+
+    this.setState({
+      iframeVisible: { state: true, hidden: false }
+    })
+
+    const iframe = await this._webPaymeSDK.createScanQR()
+    this.openIframe(iframe)
+
+    this._onSuccess = onSuccess
+    this._onError = onError
+  }
+
+  payQRCode = async (param, onSuccess, onError) => {
+    const keys = {
+      env: this.configs?.env,
+      publicKey: this.configs?.publicKey,
+      privateKey: this.configs?.privateKey,
+      accessToken: this.configs?.accessToken,
+      appId: this.configs?.xApi ?? this.configs?.appId
+    }
+    const responseClientRegister = await this.clientRegister(
+      {
+        deviceId: this.configs?.clientId ?? this.configs?.deviceId
+      },
+      keys
+    )
+    if (responseClientRegister.status) {
+      if (responseClientRegister.response?.Client?.Register?.succeeded) {
+        const response = {
+          data: {
+            clientId:
+              responseClientRegister.response?.Client?.Register?.clientId
+          }
+        }
+        const newConfigs = {
+          ...this.configs,
+          ...response.data
+        }
+        this.configs = newConfigs
+        this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+
+        const responseQRString = await this.detectQRString(
+          {
+            clientId:
+              responseClientRegister.response?.Client?.Register?.clientId,
+            qrContent: param?.qrContent
+          },
+          keys
+        )
+
+        if (responseQRString?.status) {
+          if (
+            responseQRString?.response?.OpenEWallet?.Payment?.Detect?.succeeded
+          ) {
+            const payParam = {
+              amount:
+                responseQRString?.response?.OpenEWallet?.Payment?.Detect
+                  ?.amount,
+              storeId:
+                responseQRString?.response?.OpenEWallet?.Payment?.Detect
+                  ?.storeId,
+              orderId:
+                responseQRString?.response?.OpenEWallet?.Payment?.Detect
+                  ?.orderId,
+              note:
+                responseQRString?.response?.OpenEWallet?.Payment?.Detect?.note,
+              isShowResultUI: param?.isShowResultUI
+            }
+            this.pay(payParam, onSuccess, onError)
+          } else {
+            onError({
+              code: ERROR_CODE.SYSTEM,
+              message:
+                responseQRString.response?.OpenEWallet?.Payment?.Detect
+                  ?.message ?? 'Có lỗi từ máy chủ hệ thống'
+            })
+          }
+        } else {
+          if (responseQRString.response[0]?.extensions?.code === 401) {
+            onError({
+              code: ERROR_CODE.EXPIRED,
+              message:
+                responseQRString.response[0]?.extensions?.message ??
+                'Thông tin xác thực không hợp lệ'
+            })
+          } else {
+            onError({
+              code: ERROR_CODE.SYSTEM,
+              message:
+                responseQRString?.response?.message ??
+                'Có lỗi từ máy chủ hệ thống'
+            })
+          }
+        }
+      } else {
+        onError({
+          code: ERROR_CODE.SYSTEM,
+          message:
+            responseClientRegister.response?.Client?.Register?.message ??
+            'Có lỗi từ máy chủ hệ thống'
+        })
+      }
+    } else {
+      if (responseClientRegister.response[0]?.extensions?.code === 401) {
+        onError({
+          code: ERROR_CODE.EXPIRED,
+          message:
+            responseClientRegister.response[0]?.extensions?.message ??
+            'Thông tin xác thực không hợp lệ'
+        })
+      } else {
+        onError({
+          code: ERROR_CODE.SYSTEM,
+          message:
+            responseClientRegister?.response?.message ??
+            'Có lỗi từ máy chủ hệ thống'
+        })
+      }
+    }
+  }
+
   getBalance = async (onSuccess, onError) => {
     if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
@@ -1504,7 +1723,7 @@ export default class WebPaymeSDK extends Component {
             code: ERROR_CODE.EXPIRED,
             message:
               responseGetWalletInfo.response[0]?.extensions?.message ??
-              'Thông tin  xác thực không hợp lệ'
+              'Thông tin xác thực không hợp lệ'
           })
         } else {
           onError({
@@ -1579,7 +1798,7 @@ export default class WebPaymeSDK extends Component {
             code: ERROR_CODE.EXPIRED,
             message:
               responseGetSettingServiceMain.response[0]?.extensions?.message ??
-              'Thông tin  xác thực không hợp lệ'
+              'Thông tin xác thực không hợp lệ'
           })
         } else {
           onError({
@@ -1631,7 +1850,7 @@ export default class WebPaymeSDK extends Component {
             code: ERROR_CODE.EXPIRED,
             message:
               responseFindAccount.response[0]?.extensions?.message ??
-              'Thông tin  xác thực không hợp lệ'
+              'Thông tin xác thực không hợp lệ'
           })
         } else {
           onError({
@@ -1724,7 +1943,7 @@ export default class WebPaymeSDK extends Component {
             code: ERROR_CODE.EXPIRED,
             message:
               responseGetPaymentMethod.response[0]?.extensions?.message ??
-              'Thông tin  xác thực không hợp lệ'
+              'Thông tin xác thực không hợp lệ'
           })
         } else {
           onError({
@@ -1800,7 +2019,8 @@ class PaymeWebSdk {
     GET_LIST_SERVICE: 'GET_LIST_SERVICE',
     UTILITY: 'UTILITY',
     GET_LIST_PAYMENT_METHOD: 'GET_LIST_PAYMENT_METHOD',
-    PAY: 'PAY'
+    PAY: 'PAY',
+    SCAN_QR_CODE: 'SCAN_QR_CODE'
   }
 
   ENV = {
@@ -1930,6 +2150,18 @@ class PaymeWebSdk {
         amount: param.amount,
         description: param.description,
         closeWhenDone: param?.closeWhenDone
+      }
+    }
+    const encrypt = await this.encrypt(configs)
+
+    return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
+  }
+
+  async createScanQR(param) {
+    const configs = {
+      ...this.configs,
+      actions: {
+        type: this.WALLET_ACTIONS.SCAN_QR_CODE
       }
     }
     const encrypt = await this.encrypt(configs)
