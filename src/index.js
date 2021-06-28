@@ -23,8 +23,8 @@ const ACCOUNT_STATUS = {
 }
 
 export const LANGUAGES = {
-  VN: 'VN',
-  EN: 'EN'
+  VI: 'vi',
+  EN: 'en'
 }
 
 const WALLET_ACTIONS = {
@@ -1910,7 +1910,7 @@ export default class WebPaymeSDK extends Component {
 
     try {
       const params = {
-        storeId: this.configs.storeId
+        storeId: param?.storeId
       }
       const keys = {
         env: this.configs.env,
