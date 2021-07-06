@@ -1358,119 +1358,115 @@ export default class WebPaymeSDK extends Component {
 
   pay = async (param, onSuccess, onError) => {
     if (!this.state.isLogin) {
-      const keys = {
-        env: this.configs?.env,
-        publicKey: this.configs?.publicKey,
-        privateKey: this.configs?.privateKey,
-        accessToken: this.configs?.accessToken,
-        appId: this.configs?.xApi ?? this.configs?.appId
-      }
-      const responseClientRegister = await this.clientRegister(
-        {
-          deviceId: this.configs?.clientId ?? this.configs?.deviceId
-        },
-        keys
-      )
-      if (responseClientRegister.status) {
-        if (responseClientRegister.response?.Client?.Register?.succeeded) {
-          const response = {
-            data: {
-              clientId:
-                responseClientRegister.response?.Client?.Register?.clientId
-            }
-          }
-          const newConfigs = {
-            ...this.configs,
-            ...response.data
-          }
-          this.configs = newConfigs
-          this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-        } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message:
-              responseClientRegister.response?.Client?.Register?.message ??
-              'Có lỗi từ máy chủ hệ thống'
-          })
-          return
-        }
-      } else {
-        if (responseClientRegister.response[0]?.extensions?.code === 401) {
-          onError({
-            code: ERROR_CODE.EXPIRED,
-            message:
-              responseClientRegister.response[0]?.extensions?.message ??
-              'Thông tin xác thực không hợp lệ'
-          })
-        } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message:
-              responseClientRegister?.response?.message ??
-              'Có lỗi từ máy chủ hệ thống'
-          })
-        }
-        return
-      }
-      const responseGetMerchantInfo = await this.getMerchantInfo(
-        {
-          appId: this.configs?.xApi ?? this.configs?.appId,
-          storeId: param?.storeId
-        },
-        keys
-      )
-
-      if (responseGetMerchantInfo.status) {
-        if (
-          responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
-            ?.succeeded
-        ) {
-          const newConfigs = {
-            ...this.configs,
-            accountStatus: ACCOUNT_STATUS.NOT_ACTIVED,
-            storeName:
-              responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
-                ?.merchantName,
-            storeImage:
-              responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
-                ?.storeImage
-          }
-          this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-        } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message:
-              responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
-                ?.message ?? 'Có lỗi từ máy chủ hệ thống'
-          })
-          return
-        }
-      } else {
-        if (responseGetMerchantInfo.response[0]?.extensions?.code === 401) {
-          onError({
-            code: ERROR_CODE.EXPIRED,
-            message:
-              responseGetMerchantInfo.response[0]?.extensions?.message ??
-              'Thông tin xác thực không hợp lệ'
-          })
-        } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message:
-              responseGetMerchantInfo?.response?.message ??
-              'Có lỗi từ máy chủ hệ thống'
-          })
-        }
-        return
-      }
+      onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
+      return
     }
+    // if (!this.state.isLogin) {
+    //   const keys = {
+    //     env: this.configs?.env,
+    //     publicKey: this.configs?.publicKey,
+    //     privateKey: this.configs?.privateKey,
+    //     accessToken: this.configs?.accessToken,
+    //     appId: this.configs?.xApi ?? this.configs?.appId
+    //   }
+    //   const responseClientRegister = await this.clientRegister(
+    //     {
+    //       deviceId: this.configs?.clientId ?? this.configs?.deviceId
+    //     },
+    //     keys
+    //   )
+    //   if (responseClientRegister.status) {
+    //     if (responseClientRegister.response?.Client?.Register?.succeeded) {
+    //       const response = {
+    //         data: {
+    //           clientId:
+    //             responseClientRegister.response?.Client?.Register?.clientId
+    //         }
+    //       }
+    //       const newConfigs = {
+    //         ...this.configs,
+    //         ...response.data
+    //       }
+    //       this.configs = newConfigs
+    //       this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message:
+    //           responseClientRegister.response?.Client?.Register?.message ??
+    //           'Có lỗi từ máy chủ hệ thống'
+    //       })
+    //       return
+    //     }
+    //   } else {
+    //     if (responseClientRegister.response[0]?.extensions?.code === 401) {
+    //       onError({
+    //         code: ERROR_CODE.EXPIRED,
+    //         message:
+    //           responseClientRegister.response[0]?.extensions?.message ??
+    //           'Thông tin xác thực không hợp lệ'
+    //       })
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message:
+    //           responseClientRegister?.response?.message ??
+    //           'Có lỗi từ máy chủ hệ thống'
+    //       })
+    //     }
+    //     return
+    //   }
+    //   const responseGetMerchantInfo = await this.getMerchantInfo(
+    //     {
+    //       appId: this.configs?.xApi ?? this.configs?.appId,
+    //       storeId: param?.storeId
+    //     },
+    //     keys
+    //   )
 
-    // if (!this._checkActiveAndKyc()) {
-    //   onError({
-    //     code: ERROR_CODE[this.configs.accountStatus],
-    //     message: this.configs.accountStatus
-    //   })
-    //   return
+    //   if (responseGetMerchantInfo.status) {
+    //     if (
+    //       responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+    //         ?.succeeded
+    //     ) {
+    //       const newConfigs = {
+    //         ...this.configs,
+    //         accountStatus: ACCOUNT_STATUS.NOT_ACTIVED,
+    //         storeName:
+    //           responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+    //             ?.merchantName,
+    //         storeImage:
+    //           responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+    //             ?.storeImage
+    //       }
+    //       this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message:
+    //           responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+    //             ?.message ?? 'Có lỗi từ máy chủ hệ thống'
+    //       })
+    //       return
+    //     }
+    //   } else {
+    //     if (responseGetMerchantInfo.response[0]?.extensions?.code === 401) {
+    //       onError({
+    //         code: ERROR_CODE.EXPIRED,
+    //         message:
+    //           responseGetMerchantInfo.response[0]?.extensions?.message ??
+    //           'Thông tin xác thực không hợp lệ'
+    //       })
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message:
+    //           responseGetMerchantInfo?.response?.message ??
+    //           'Có lỗi từ máy chủ hệ thống'
+    //       })
+    //     }
+    //     return
+    //   }
     // }
 
     if (param?.method?.type === METHOD_TYPE.WALLET) {
@@ -1516,62 +1512,67 @@ export default class WebPaymeSDK extends Component {
 
   scanQR = async (onSuccess, onError) => {
     if (!this.state.isLogin) {
-      const keys = {
-        env: this.configs?.env,
-        publicKey: this.configs?.publicKey,
-        privateKey: this.configs?.privateKey,
-        accessToken: this.configs?.accessToken,
-        appId: this.configs?.xApi ?? this.configs?.appId
-      }
-      const responseClientRegister = await this.clientRegister(
-        {
-          deviceId: this.configs?.clientId ?? this.configs?.deviceId
-        },
-        keys
-      )
-      if (responseClientRegister.status) {
-        if (responseClientRegister.response?.Client?.Register?.succeeded) {
-          const response = {
-            data: {
-              clientId:
-                responseClientRegister.response?.Client?.Register?.clientId
-            }
-          }
-          const newConfigs = {
-            ...this.configs,
-            ...response.data,
-            accountStatus: ACCOUNT_STATUS.NOT_ACTIVED
-          }
-          this.configs = newConfigs
-          this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-        } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message:
-              responseClientRegister.response?.Client?.Register?.message ??
-              'Có lỗi từ máy chủ hệ thống'
-          })
-          return
-        }
-      } else {
-        if (responseClientRegister.response[0]?.extensions?.code === 401) {
-          onError({
-            code: ERROR_CODE.EXPIRED,
-            message:
-              responseClientRegister.response[0]?.extensions?.message ??
-              'Thông tin xác thực không hợp lệ'
-          })
-        } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message:
-              responseClientRegister?.response?.message ??
-              'Có lỗi từ máy chủ hệ thống'
-          })
-        }
-        return
-      }
+      onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
+      return
     }
+
+    // if (!this.state.isLogin) {
+    //   const keys = {
+    //     env: this.configs?.env,
+    //     publicKey: this.configs?.publicKey,
+    //     privateKey: this.configs?.privateKey,
+    //     accessToken: this.configs?.accessToken,
+    //     appId: this.configs?.xApi ?? this.configs?.appId
+    //   }
+    //   const responseClientRegister = await this.clientRegister(
+    //     {
+    //       deviceId: this.configs?.clientId ?? this.configs?.deviceId
+    //     },
+    //     keys
+    //   )
+    //   if (responseClientRegister.status) {
+    //     if (responseClientRegister.response?.Client?.Register?.succeeded) {
+    //       const response = {
+    //         data: {
+    //           clientId:
+    //             responseClientRegister.response?.Client?.Register?.clientId
+    //         }
+    //       }
+    //       const newConfigs = {
+    //         ...this.configs,
+    //         ...response.data,
+    //         accountStatus: ACCOUNT_STATUS.NOT_ACTIVED
+    //       }
+    //       this.configs = newConfigs
+    //       this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message:
+    //           responseClientRegister.response?.Client?.Register?.message ??
+    //           'Có lỗi từ máy chủ hệ thống'
+    //       })
+    //       return
+    //     }
+    //   } else {
+    //     if (responseClientRegister.response[0]?.extensions?.code === 401) {
+    //       onError({
+    //         code: ERROR_CODE.EXPIRED,
+    //         message:
+    //           responseClientRegister.response[0]?.extensions?.message ??
+    //           'Thông tin xác thực không hợp lệ'
+    //       })
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message:
+    //           responseClientRegister?.response?.message ??
+    //           'Có lỗi từ máy chủ hệ thống'
+    //       })
+    //     }
+    //     return
+    //   }
+    // }
 
     this.setState({
       iframeVisible: { state: true, hidden: false }
