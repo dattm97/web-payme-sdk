@@ -203,6 +203,8 @@ const SQL_GET_MERCHANT_INFO = `mutation Mutation($getInfoMerchantInput: OpenEWal
       brandName
       backgroundColor
       storeImage
+      storeName
+      isVisibleHeader
     }
   }
 }`
@@ -1119,8 +1121,6 @@ export default class WebPaymeSDK extends Component {
                 handShake,
                 accessToken = '',
                 phone = '',
-                storeName = '',
-                storeImage = '',
                 updateToken,
                 kyc
               } = responseAccountInit.response?.OpenEWallet?.Init ?? {}
@@ -1152,8 +1152,6 @@ export default class WebPaymeSDK extends Component {
                     accountStatus,
                     handShake,
                     accessToken,
-                    storeName,
-                    storeImage,
                     phone: configs.phone ? configs.phone : phone,
                     kyc,
                     clientId:
@@ -1177,8 +1175,6 @@ export default class WebPaymeSDK extends Component {
                     accountStatus,
                     handShake,
                     accessToken,
-                    storeName,
-                    storeImage,
                     phone: configs.phone ? configs.phone : phone,
                     kyc,
                     clientId:
@@ -1468,6 +1464,68 @@ export default class WebPaymeSDK extends Component {
     //     return
     //   }
     // }
+
+    const keys = {
+      env: this.configs?.env,
+      publicKey: this.configs?.publicKey,
+      privateKey: this.configs?.privateKey,
+      accessToken: this.configs?.accessToken,
+      appId: this.configs?.xApi ?? this.configs?.appId
+    }
+
+    const responseGetMerchantInfo = await this.getMerchantInfo(
+      {
+        appId: this.configs?.xApi ?? this.configs?.appId,
+        storeId: param?.storeId
+      },
+      keys
+    )
+
+    if (responseGetMerchantInfo.status) {
+      if (
+        responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+          ?.succeeded
+      ) {
+        const newConfigs = {
+          ...this.configs,
+          storeName:
+            responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+              ?.storeName,
+          storeImage:
+            responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+              ?.storeImage,
+          isVisibleHeader:
+            responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+              ?.isVisibleHeader
+        }
+        this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+      } else {
+        onError({
+          code: ERROR_CODE.SYSTEM,
+          message:
+            responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
+              ?.message ?? 'Có lỗi từ máy chủ hệ thống'
+        })
+        return
+      }
+    } else {
+      if (responseGetMerchantInfo.response[0]?.extensions?.code === 401) {
+        onError({
+          code: ERROR_CODE.EXPIRED,
+          message:
+            responseGetMerchantInfo.response[0]?.extensions?.message ??
+            'Thông tin xác thực không hợp lệ'
+        })
+      } else {
+        onError({
+          code: ERROR_CODE.SYSTEM,
+          message:
+            responseGetMerchantInfo?.response?.message ??
+            'Có lỗi từ máy chủ hệ thống'
+        })
+      }
+      return
+    }
 
     if (param?.method?.type === METHOD_TYPE.WALLET) {
       if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_ACTIVED) {
