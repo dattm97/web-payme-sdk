@@ -869,7 +869,6 @@ export default class WebPaymeSDK extends Component {
       SQL_GET_MERCHANT_INFO,
       {
         getInfoMerchantInput: {
-          appId: params?.appId,
           storeId: params?.storeId
         }
       },
@@ -1475,7 +1474,6 @@ export default class WebPaymeSDK extends Component {
 
     const responseGetMerchantInfo = await this.getMerchantInfo(
       {
-        appId: this.configs?.xApi ?? this.configs?.appId,
         storeId: param?.storeId
       },
       keys
