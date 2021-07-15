@@ -1545,9 +1545,20 @@ export default class WebPaymeSDK extends Component {
       const responseGetPaymentMethod = await this.getPaymentMethod(params, keys)
       if (responseGetPaymentMethod.status) {
         if (
-          !responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+          responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
             ?.succeeded
         ) {
+          if (
+            responseGetPaymentMethod.response?.Utility?.GetPaymentMethod?.method
+              .length <= 0
+          ) {
+            onError({
+              code: ERROR_CODE.UNKNOWN_PAYCODE,
+              message: 'Không có phương thức nào hợp lệ!'
+            })
+            return
+          }
+        } else {
           onError({
             code: ERROR_CODE.UNKNOWN_PAYCODE,
             message:
@@ -1692,9 +1703,20 @@ export default class WebPaymeSDK extends Component {
       const responseGetPaymentMethod = await this.getPaymentMethod(params, keys)
       if (responseGetPaymentMethod.status) {
         if (
-          !responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+          responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
             ?.succeeded
         ) {
+          if (
+            responseGetPaymentMethod.response?.Utility?.GetPaymentMethod?.method
+              .length <= 0
+          ) {
+            onError({
+              code: ERROR_CODE.UNKNOWN_PAYCODE,
+              message: 'Không có phương thức nào hợp lệ!'
+            })
+            return
+          }
+        } else {
           onError({
             code: ERROR_CODE.UNKNOWN_PAYCODE,
             message:
