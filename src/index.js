@@ -1549,8 +1549,8 @@ export default class WebPaymeSDK extends Component {
             ?.succeeded
         ) {
           if (
-            responseGetPaymentMethod.response?.Utility?.GetPaymentMethod?.method
-              .length <= 0
+            responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+              ?.methods.length <= 0
           ) {
             onError({
               code: ERROR_CODE.UNKNOWN_PAYCODE,
@@ -1707,8 +1707,8 @@ export default class WebPaymeSDK extends Component {
             ?.succeeded
         ) {
           if (
-            responseGetPaymentMethod.response?.Utility?.GetPaymentMethod?.method
-              .length <= 0
+            responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+              ?.methods.length <= 0
           ) {
             onError({
               code: ERROR_CODE.UNKNOWN_PAYCODE,
