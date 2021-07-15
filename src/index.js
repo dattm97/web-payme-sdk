@@ -13,7 +13,18 @@ export const ERROR_CODE = {
   USER_CANCELLED: -8,
   NOT_LOGIN: -9,
   CLOSE_IFRAME: -10,
-  BALANCE_ERROR: -11
+  BALANCE_ERROR: -11,
+  UNKNOWN_PAYCODE: -12
+}
+
+export const PAY_CODE = {
+  PAYME: 'PAYME',
+  ATM: 'ATM',
+  CREDIT: 'CREDIT',
+  MOMO: 'MOMO',
+  VN_PAY: 'VN_PAY',
+  MANUAL_BANK: 'MANUAL_BANK',
+  ZALO_PAY: 'ZALO_PAY'
 }
 
 const ACCOUNT_STATUS = {
@@ -44,24 +55,24 @@ const WALLET_ACTIONS = {
   SCAN_QR_CODE: 'SCAN_QR_CODE'
 }
 
-const METHOD_TYPE = {
-  PAYME: 'PAYME',
-  PAYME_CREDIT: 'PAYME_CREDIT',
-  WALLET: 'WALLET',
-  BANK_ACCOUNT: 'BANK_ACCOUNT',
-  BANK_CARD: 'BANK_CARD',
-  BANK_CARD_PG: 'BANK_CARD_PG',
-  BANK_TRANSFER: 'BANK_TRANSFER',
-  ATM_CARD: 'ATM_CARD',
-  GATEWAY: 'GATEWAY',
-  CREDIT_CARD: 'CREDIT_CARD',
-  LINKED: 'LINKED',
-  BANK_QR_CODE: 'BANK_QR_CODE',
-  LINKED_BANK: 'LINKED_BANK',
-  LINKED_BANK_PVCBANK: 'LINKED_BANK_PVCBANK',
-  LINKED_BANK_OCBBANK: 'LINKED_BANK_OCBBANK',
-  LINKED_GATEWAY: 'LINKED_GATEWAY'
-}
+// const METHOD_TYPE = {
+//   PAYME: 'PAYME',
+//   PAYME_CREDIT: 'PAYME_CREDIT',
+//   WALLET: 'WALLET',
+//   BANK_ACCOUNT: 'BANK_ACCOUNT',
+//   BANK_CARD: 'BANK_CARD',
+//   BANK_CARD_PG: 'BANK_CARD_PG',
+//   BANK_TRANSFER: 'BANK_TRANSFER',
+//   ATM_CARD: 'ATM_CARD',
+//   GATEWAY: 'GATEWAY',
+//   CREDIT_CARD: 'CREDIT_CARD',
+//   LINKED: 'LINKED',
+//   BANK_QR_CODE: 'BANK_QR_CODE',
+//   LINKED_BANK: 'LINKED_BANK',
+//   LINKED_BANK_PVCBANK: 'LINKED_BANK_PVCBANK',
+//   LINKED_BANK_OCBBANK: 'LINKED_BANK_OCBBANK',
+//   LINKED_GATEWAY: 'LINKED_GATEWAY'
+// }
 
 /**
  * Config API
@@ -882,7 +893,8 @@ export default class WebPaymeSDK extends Component {
       serviceType: 'OPEN_EWALLET_PAYMENT',
       extraData: {
         storeId: params?.storeId
-      }
+      },
+      payCode: params?.payCode
     }
     const res = await this.callGraphql(
       SQL_PAYMENT_MEHTOD,
@@ -1525,36 +1537,129 @@ export default class WebPaymeSDK extends Component {
       return
     }
 
-    if (param?.method?.type === METHOD_TYPE.WALLET) {
-      if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_ACTIVED) {
-        onError({
-          code: ERROR_CODE.NOT_ACTIVED,
-          message: 'Tài khoản chưa được active!'
-        })
-      } else if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_KYC) {
-        onError({
-          code: ERROR_CODE.NOT_KYC,
-          message: 'Tài khoản chưa được định danh!'
-        })
+    if (param?.payCode) {
+      const params = {
+        storeId: param?.storeId,
+        payCode: param?.payCode
+      }
+      const responseGetPaymentMethod = await this.getPaymentMethod(params, keys)
+      if (responseGetPaymentMethod.status) {
+        if (
+          !responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+            ?.succeeded
+        ) {
+          onError({
+            code: ERROR_CODE.UNKNOWN_PAYCODE,
+            message:
+              responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+                ?.message ?? 'Không có phương thức nào hợp lệ!'
+          })
+          return
+        }
       } else {
-        const res = await this.getBalanceInternal()
-        if (res?.status) {
-          if (res?.balance < param.amount) {
-            onError({
-              code: ERROR_CODE.BALANCE_ERROR,
-              message: 'Số dư ví PayME không đủ'
-            })
-            return
-          }
+        if (responseGetPaymentMethod.response[0]?.extensions?.code === 401) {
+          onError({
+            code: ERROR_CODE.EXPIRED,
+            message:
+              responseGetPaymentMethod.response[0]?.extensions?.message ??
+              'Thông tin xác thực không hợp lệ'
+          })
+          return
         } else {
           onError({
-            code: ERROR_CODE.SYSTEM,
-            message: res?.error?.message ?? 'Có lỗi xảy ra'
+            code: ERROR_CODE.UNKNOWN_PAYCODE,
+            message: 'Không có phương thức nào hợp lệ!'
           })
           return
         }
       }
+    } else {
+      onError({
+        code: ERROR_CODE.UNKNOWN_PAYCODE,
+        message: 'Thiếu thông tin payCode!'
+      })
+      return
     }
+    // if (param?.payCode) {
+    //   console.log('121212', param?.payCode)
+    //   const params = {
+    //     storeId: param?.storeId,
+    //     payCode: param?.payCode
+    //   }
+    //   const responseGetPaymentMethod = await this.getPaymentMethod(params, keys)
+    //   if (responseGetPaymentMethod.status) {
+    //     if (
+    //       responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+    //         ?.succeeded
+    //     ) {
+    //       // onSuccess(
+    //       //   responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+    //       //     ?.methods ?? []
+    //       // )
+    //       console.log('GetPaymentMethod', responseGetPaymentMethod.response?.Utility?.GetPaymentMethod)
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message:
+    //           responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+    //             ?.message ?? 'Có lỗi từ máy chủ hệ thống'
+    //       })
+    //       return
+    //     }
+    //   } else {
+    //     if (responseGetPaymentMethod.response[0]?.extensions?.code === 401) {
+    //       onError({
+    //         code: ERROR_CODE.EXPIRED,
+    //         message:
+    //           responseGetPaymentMethod.response[0]?.extensions?.message ??
+    //           'Thông tin xác thực không hợp lệ'
+    //       })
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message: 'Có lỗi từ máy chủ hệ thống'
+    //       })
+    //     }
+    //     return
+    //   }
+    // } else {
+    //   onError({
+    //     code: ERROR_CODE.UNKNOWN_PAYCODE,
+    //     message: 'Thiếu thông tin payCode!'
+    //   })
+    //   return
+    // }
+
+    // if (param?.method?.type === METHOD_TYPE.WALLET) {
+    //   if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_ACTIVED) {
+    //     onError({
+    //       code: ERROR_CODE.NOT_ACTIVED,
+    //       message: 'Tài khoản chưa được active!'
+    //     })
+    //   } else if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_KYC) {
+    //     onError({
+    //       code: ERROR_CODE.NOT_KYC,
+    //       message: 'Tài khoản chưa được định danh!'
+    //     })
+    //   } else {
+    //     const res = await this.getBalanceInternal()
+    //     if (res?.status) {
+    //       if (res?.balance < param.amount) {
+    //         onError({
+    //           code: ERROR_CODE.BALANCE_ERROR,
+    //           message: 'Số dư ví PayME không đủ'
+    //         })
+    //         return
+    //       }
+    //     } else {
+    //       onError({
+    //         code: ERROR_CODE.SYSTEM,
+    //         message: res?.error?.message ?? 'Có lỗi xảy ra'
+    //       })
+    //       return
+    //     }
+    //   }
+    // }
 
     this.setState({
       iframeVisible: { state: true, hidden: false }
@@ -1566,9 +1671,60 @@ export default class WebPaymeSDK extends Component {
     this._onError = onError
   }
 
-  scanQR = async (onSuccess, onError) => {
+  scanQR = async (param, onSuccess, onError) => {
     if (!this.state.isLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
+      return
+    }
+
+    const keys = {
+      env: this.configs?.env,
+      publicKey: this.configs?.publicKey,
+      privateKey: this.configs?.privateKey,
+      accessToken: this.configs?.accessToken,
+      appId: this.configs?.xApi ?? this.configs?.appId
+    }
+
+    if (param?.payCode) {
+      const params = {
+        payCode: param?.payCode
+      }
+      const responseGetPaymentMethod = await this.getPaymentMethod(params, keys)
+      if (responseGetPaymentMethod.status) {
+        if (
+          !responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+            ?.succeeded
+        ) {
+          onError({
+            code: ERROR_CODE.UNKNOWN_PAYCODE,
+            message:
+              responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+                ?.message ?? 'Không có phương thức nào hợp lệ!'
+          })
+          return
+        }
+      } else {
+        if (responseGetPaymentMethod.response[0]?.extensions?.code === 401) {
+          onError({
+            code: ERROR_CODE.EXPIRED,
+            message:
+              responseGetPaymentMethod.response[0]?.extensions?.message ??
+              'Thông tin xác thực không hợp lệ'
+          })
+          return
+        } else {
+          onError({
+            code: ERROR_CODE.UNKNOWN_PAYCODE,
+            message: 'Không có phương thức nào hợp lệ!'
+          })
+          return
+        }
+      }
+    } else {
+      onError({
+        code: ERROR_CODE.UNKNOWN_PAYCODE,
+        message: 'Thiếu thông tin payCode!'
+      })
       return
     }
 
@@ -1634,7 +1790,7 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true, hidden: false }
     })
 
-    const iframe = await this._webPaymeSDK.createScanQR()
+    const iframe = await this._webPaymeSDK.createScanQR(param)
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1695,7 +1851,8 @@ export default class WebPaymeSDK extends Component {
                   ?.orderId,
               note:
                 responseQRString?.response?.OpenEWallet?.Payment?.Detect?.note,
-              isShowResultUI: param?.isShowResultUI
+              isShowResultUI: param?.isShowResultUI,
+              payCode: param?.payCode
             }
             this.pay(payParam, onSuccess, onError)
           } else {
@@ -1951,71 +2108,71 @@ export default class WebPaymeSDK extends Component {
     this._onError = onError
   }
 
-  getListPaymentMethod = async (param, onSuccess, onError) => {
-    if (!this.state.isLogin) {
-      onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
-      return
-    }
+  // getListPaymentMethod = async (param, onSuccess, onError) => {
+  //   if (!this.state.isLogin) {
+  //     onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
+  //     return
+  //   }
 
-    // if (!this._checkActiveAndKyc()) {
-    //   onError({
-    //     code: ERROR_CODE[this.configs.accountStatus],
-    //     message: this.configs.accountStatus
-    //   })
-    //   return
-    // }
+  //   // if (!this._checkActiveAndKyc()) {
+  //   //   onError({
+  //   //     code: ERROR_CODE[this.configs.accountStatus],
+  //   //     message: this.configs.accountStatus
+  //   //   })
+  //   //   return
+  //   // }
 
-    try {
-      const params = {
-        storeId: param?.storeId
-      }
-      const keys = {
-        env: this.configs.env,
-        publicKey: this.configs.publicKey,
-        privateKey: this.configs.privateKey,
-        accessToken: this.configs.accessToken,
-        appId: this.configs?.xApi ?? this.configs?.appId
-      }
-      const responseGetPaymentMethod = await this.getPaymentMethod(params, keys)
-      if (responseGetPaymentMethod.status) {
-        if (
-          responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
-            ?.succeeded
-        ) {
-          onSuccess(
-            responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
-              ?.methods ?? []
-          )
-        } else {
-          onError({
-            code: ERROR_CODE.EXPIRED,
-            message:
-              responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
-                ?.message ?? 'Có lỗi từ máy chủ hệ thống'
-          })
-        }
-      } else {
-        if (responseGetPaymentMethod.response[0]?.extensions?.code === 401) {
-          onError({
-            code: ERROR_CODE.EXPIRED,
-            message:
-              responseGetPaymentMethod.response[0]?.extensions?.message ??
-              'Thông tin xác thực không hợp lệ'
-          })
-        } else {
-          onError({
-            code: ERROR_CODE.SYSTEM,
-            message: 'Có lỗi từ máy chủ hệ thống'
-          })
-        }
-      }
-    } catch (error) {
-      onError({
-        code: ERROR_CODE.SYSTEM,
-        message: error.message ?? 'Có lỗi xảy ra'
-      })
-    }
-  }
+  //   try {
+  //     const params = {
+  //       storeId: param?.storeId
+  //     }
+  //     const keys = {
+  //       env: this.configs.env,
+  //       publicKey: this.configs.publicKey,
+  //       privateKey: this.configs.privateKey,
+  //       accessToken: this.configs.accessToken,
+  //       appId: this.configs?.xApi ?? this.configs?.appId
+  //     }
+  //     const responseGetPaymentMethod = await this.getPaymentMethod(params, keys)
+  //     if (responseGetPaymentMethod.status) {
+  //       if (
+  //         responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+  //           ?.succeeded
+  //       ) {
+  //         onSuccess(
+  //           responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+  //             ?.methods ?? []
+  //         )
+  //       } else {
+  //         onError({
+  //           code: ERROR_CODE.EXPIRED,
+  //           message:
+  //             responseGetPaymentMethod.response?.Utility?.GetPaymentMethod
+  //               ?.message ?? 'Có lỗi từ máy chủ hệ thống'
+  //         })
+  //       }
+  //     } else {
+  //       if (responseGetPaymentMethod.response[0]?.extensions?.code === 401) {
+  //         onError({
+  //           code: ERROR_CODE.EXPIRED,
+  //           message:
+  //             responseGetPaymentMethod.response[0]?.extensions?.message ??
+  //             'Thông tin xác thực không hợp lệ'
+  //         })
+  //       } else {
+  //         onError({
+  //           code: ERROR_CODE.SYSTEM,
+  //           message: 'Có lỗi từ máy chủ hệ thống'
+  //         })
+  //       }
+  //     }
+  //   } catch (error) {
+  //     onError({
+  //       code: ERROR_CODE.SYSTEM,
+  //       message: error.message ?? 'Có lỗi xảy ra'
+  //     })
+  //   }
+  // }
 
   render() {
     const { iframeVisible } = this.state
@@ -2218,7 +2375,8 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.SCAN_QR_CODE
+        type: this.WALLET_ACTIONS.SCAN_QR_CODE,
+        payCode: param?.payCode
       }
     }
     const encrypt = await this.encrypt(configs)
@@ -2236,7 +2394,8 @@ class PaymeWebSdk {
         storeId: param.storeId,
         note: param.note,
         method: param.method,
-        isShowResultUI: param.isShowResultUI
+        isShowResultUI: param.isShowResultUI,
+        payCode: param.payCode
       }
     }
     const encrypt = await this.encrypt(configs)
