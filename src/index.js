@@ -81,7 +81,7 @@ const API_GENERAL = 'fe.payme.vn'
 
 const GRAPHQL_DEV = 'https://dev-fe.payme.net.vn'
 const GRAPHQL_SANBOX = `https://sbx-${API_GENERAL}`
-const GRAPHQL_STAGGING = `https://s${API_GENERAL}`
+const GRAPHQL_STAGING = `https://s${API_GENERAL}`
 const GRAPHQL_PRODUCTION = `https://${API_GENERAL}`
 
 /**
@@ -729,7 +729,7 @@ export default class WebPaymeSDK extends Component {
       case 'sandbox':
         return GRAPHQL_SANBOX
       case 'staging':
-        return GRAPHQL_STAGGING
+        return GRAPHQL_STAGING
       default:
         return GRAPHQL_PRODUCTION
     }
@@ -2262,6 +2262,7 @@ class PaymeWebSdk {
   ENV = {
     dev: 'dev',
     sandbox: 'sandbox',
+    staging: 'staging',
     production: 'production'
   }
 
@@ -2276,6 +2277,8 @@ class PaymeWebSdk {
         return 'https://dev-sdk.payme.com.vn'
       case this.ENV.sandbox:
         return 'https://sbx-sdk.payme.com.vn'
+      case this.ENV.staging:
+        return 'https://staging-sdk.payme.com.vn'
       case this.ENV.production:
         return 'https://sdk.payme.com.vn'
       default:
