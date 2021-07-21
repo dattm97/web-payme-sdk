@@ -21,10 +21,7 @@ export const PAY_CODE = {
   PAYME: 'PAYME',
   ATM: 'ATM',
   CREDIT: 'CREDIT',
-  MOMO: 'MOMO',
-  VN_PAY: 'VN_PAY',
-  MANUAL_BANK: 'MANUAL_BANK',
-  ZALO_PAY: 'ZALO_PAY'
+  MANUAL_BANK: 'MANUAL_BANK'
 }
 
 const ACCOUNT_STATUS = {
