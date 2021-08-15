@@ -27,7 +27,9 @@ export const PAY_CODE = {
 const ACCOUNT_STATUS = {
   NOT_ACTIVED: 'NOT_ACTIVED',
   NOT_KYC: 'NOT_KYC',
-  KYC_APPROVED: 'KYC_APPROVED'
+  KYC_APPROVED: 'KYC_APPROVED',
+  KYC_REVIEW: 'KYC_REVIEW',
+  KYC_REJECTED: 'KYC_REJECTED'
 }
 
 export const LANGUAGES = {
@@ -1147,11 +1149,21 @@ export default class WebPaymeSDK extends Component {
               if (responseAccountInit.response?.OpenEWallet?.Init?.succeeded) {
                 if (
                   responseAccountInit.response?.OpenEWallet?.Init?.kyc &&
-                  responseAccountInit.response?.OpenEWallet?.Init?.kyc?.kycId &&
-                  responseAccountInit.response?.OpenEWallet?.Init?.kyc
-                    ?.state === 'APPROVED'
+                  responseAccountInit.response?.OpenEWallet?.Init?.kyc?.kycId
                 ) {
-                  accountStatus = ACCOUNT_STATUS.KYC_APPROVED
+                  if (
+                    responseAccountInit.response?.OpenEWallet?.Init?.kyc
+                      ?.state === 'APPROVED'
+                  ) {
+                    accountStatus = ACCOUNT_STATUS.KYC_APPROVED
+                  } else if (
+                    responseAccountInit.response?.OpenEWallet?.Init?.kyc
+                      ?.state === 'PENDING'
+                  ) {
+                    accountStatus = ACCOUNT_STATUS.KYC_REVIEW
+                  } else {
+                    accountStatus = ACCOUNT_STATUS.KYC_REJECTED
+                  }
                 } else {
                   accountStatus = ACCOUNT_STATUS.NOT_KYC
                 }

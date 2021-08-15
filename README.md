@@ -133,6 +133,8 @@ refWebPaymeSDK.current.login(
 | `NOT_ACTIVED` | `enum` | Tài khoản chưa kích hoạt. |
 | `NOT_KYC` | `enum` | Tài khoản chưa định danh. |
 | `KYC_APPROVED` | `enum` | Tài khoản đã định danh. |
+| `KYC_REVIEW` | `enum` | Tài khoản đang chờ duyệt |
+| `KYC_REJECT` | `enum` | Tài khoản bị từ chối |
 
 #### Parameters
 | Property | Type | Description |
