@@ -7,7 +7,7 @@ export const ERROR_CODE = {
   SYSTEM: -2,
   LIMIT: -3,
   NOT_ACTIVED: -4,
-  NOT_KYC: -5,
+  KYC_NOT_APPROVED: -5,
   PAYMENT_ERROR: -6,
   ERROR_KEY_ENCODE: -7,
   USER_CANCELLED: -8,
@@ -1305,7 +1305,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: ERROR_CODE[this.configs.accountStatus],
+        code: ERROR_CODE.KYC_NOT_APPROVED,
         message: this.configs.accountStatus
       })
       return
@@ -1330,7 +1330,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: ERROR_CODE[this.configs.accountStatus],
+        code: ERROR_CODE.KYC_NOT_APPROVED,
         message: this.configs.accountStatus
       })
       return
@@ -1355,7 +1355,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: ERROR_CODE[this.configs.accountStatus],
+        code: ERROR_CODE.KYC_NOT_APPROVED,
         message: this.configs.accountStatus
       })
       return
@@ -1946,7 +1946,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: ERROR_CODE[this.configs.accountStatus],
+        code: ERROR_CODE.KYC_NOT_APPROVED,
         message: this.configs.accountStatus
       })
       return
@@ -2008,7 +2008,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: ERROR_CODE[this.configs.accountStatus],
+        code: ERROR_CODE.KYC_NOT_APPROVED,
         message: this.configs.accountStatus
       })
       return
@@ -2070,7 +2070,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: ERROR_CODE[this.configs.accountStatus],
+        code: ERROR_CODE.KYC_NOT_APPROVED,
         message: this.configs.accountStatus
       })
       return
@@ -2122,7 +2122,7 @@ export default class WebPaymeSDK extends Component {
 
     if (!this._checkActiveAndKyc()) {
       onError({
-        code: ERROR_CODE[this.configs.accountStatus],
+        code: ERROR_CODE.KYC_NOT_APPROVED,
         message: this.configs.accountStatus
       })
       return
@@ -2147,7 +2147,7 @@ export default class WebPaymeSDK extends Component {
 
   //   // if (!this._checkActiveAndKyc()) {
   //   //   onError({
-  //   //     code: ERROR_CODE[this.configs.accountStatus],
+  //   //     code: ERROR_CODE.KYC_NOT_APPROVED,
   //   //     message: this.configs.accountStatus
   //   //   })
   //   //   return
