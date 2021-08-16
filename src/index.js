@@ -6,7 +6,7 @@ export const ERROR_CODE = {
   NETWORK: -1,
   SYSTEM: -2,
   LIMIT: -3,
-  NOT_ACTIVED: -4,
+  NOT_ACTIVATED: -4,
   KYC_NOT_APPROVED: -5,
   PAYMENT_ERROR: -6,
   ERROR_KEY_ENCODE: -7,
@@ -17,7 +17,7 @@ export const ERROR_CODE = {
 }
 
 const ACCOUNT_STATUS = {
-  NOT_ACTIVED: 'NOT_ACTIVED',
+  NOT_ACTIVATED: 'NOT_ACTIVATED',
   NOT_KYC: 'NOT_KYC',
   KYC_APPROVED: 'KYC_APPROVED',
   KYC_REVIEW: 'KYC_REVIEW',
@@ -1125,7 +1125,7 @@ export default class WebPaymeSDK extends Component {
                 updateToken,
                 kyc
               } = responseAccountInit.response?.OpenEWallet?.Init ?? {}
-              let accountStatus = ACCOUNT_STATUS.NOT_ACTIVED
+              let accountStatus = ACCOUNT_STATUS.NOT_ACTIVATED
 
               // if (
               //   configs.phone &&
@@ -1438,7 +1438,7 @@ export default class WebPaymeSDK extends Component {
     //     ) {
     //       const newConfigs = {
     //         ...this.configs,
-    //         accountStatus: ACCOUNT_STATUS.NOT_ACTIVED,
+    //         accountStatus: ACCOUNT_STATUS.NOT_ACTIVATED,
     //         storeName:
     //           responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
     //             ?.merchantName,
@@ -1538,9 +1538,9 @@ export default class WebPaymeSDK extends Component {
     }
 
     if (param?.method?.type === METHOD_TYPE.WALLET) {
-      if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_ACTIVED) {
+      if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_ACTIVATED) {
         onError({
-          code: ERROR_CODE.NOT_ACTIVED,
+          code: ERROR_CODE.NOT_ACTIVATED,
           message: 'Tài khoản chưa được active!'
         })
       } else if (this.configs.accountStatus === ACCOUNT_STATUS.NOT_KYC) {
@@ -1609,7 +1609,7 @@ export default class WebPaymeSDK extends Component {
     //       const newConfigs = {
     //         ...this.configs,
     //         ...response.data,
-    //         accountStatus: ACCOUNT_STATUS.NOT_ACTIVED
+    //         accountStatus: ACCOUNT_STATUS.NOT_ACTIVATED
     //       }
     //       this.configs = newConfigs
     //       this._webPaymeSDK = new PaymeWebSdk(newConfigs)
