@@ -147,7 +147,7 @@ connectToken cần để truyền gọi api từ tới PayME và sẽ được t
 ```javascript
 import crypto from 'crypto'
 const data = {
-  timestamp:  34343242342,
+  timestamp:  "2021-01-20T06:53:07.621Z",
   userId :  "ABC",
   phone :  "0909998877"
 }
@@ -183,6 +183,22 @@ refWebPaymeSDK.current.getAccountInfo(
 Hàm này được gọi khi từ app tích hợp khi muốn gọi 1 chức năng PayME bằng cách truyền vào tham số Action như trên.
 ```javascript
 refWebPaymeSDK.current.openWallet(
+   (response) => {
+      // onSuccess
+   },
+   (error) => {
+      // onError
+   }
+)
+```
+
+#### openHistory
+Hàm này được gọi khi từ app tích hợp khi muốn mở lịch sử giao dịch từ ví.
+
+⚠️⚠️⚠️ version 1.4.10 trở đi
+
+```javascript
+refWebPaymeSDK.current.openHistory(
    (response) => {
       // onSuccess
    },
