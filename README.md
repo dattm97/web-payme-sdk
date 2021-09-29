@@ -377,8 +377,9 @@ refWebPaymeSDK.current.openService(
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện thành công từ PayME SDK |
 | onError | Yes | Dùng để bắt callback khi có lỗi xảy ra trong quá trình gọi PayME SDK |
 
-#### getListPaymentMethod
+#### getListPaymentMethod - ⚠️⚠️⚠️ Đã remove từ version 1.4.1 trở đi
 Hàm này được gọi khi từ app tích hợp khi muốn lấy danh sách các phương thức thanh toán mà PayME cung cấp vs từng tài khoản sau khi tài khoản đã kích hoạt và định danh thành công, dùng để truyền vào hàm pay() để chọn trực tiếp phương thức thanh toán mà app đối tác muốn
+
 ```javascript
 refWebPaymeSDK.current.getListPaymentMethod(
    { 
