@@ -195,6 +195,8 @@ refWebPaymeSDK.current.openWallet(
 #### openHistory
 Hàm này được gọi khi từ app tích hợp khi muốn mở lịch sử giao dịch từ ví.
 
+** Yêu cầu tài khoản đã kích hoạt và định danh để mở lịc sử Ví 
+
 ⚠️⚠️⚠️ version 1.4.10 trở đi
 
 ```javascript
