@@ -1103,32 +1103,39 @@ export default class WebPaymeSDK extends Component {
 
   checkPaycode = async (
     params = {
-      payCode: "",
-      storeId: "",
+      payCode: '',
+      storeId: ''
     },
     onError = () => null
   ) => {
     if (!params?.payCode) {
       onError({
         code: ERROR_CODE.UNKNOWN_PAYCODE,
-        message: "Thiếu thông tin payCode!",
-      });
+        message: 'Thiếu thông tin payCode!'
+      })
       return false
-    } else if (params?.payCode && !Object.values(PAY_CODE).includes(params?.payCode)) {
+    } else if (
+      params?.payCode &&
+      !Object.values(PAY_CODE).includes(params?.payCode)
+    ) {
       onError({
         code: ERROR_CODE.UNKNOWN_PAYCODE,
         message: 'Giá trị payCode không hợp lệ!'
       })
       return false
-    } else if (params?.payCode === PAY_CODE.MOMO || params?.payCode === PAY_CODE.ZALO_PAY) {
+    } else if (
+      params?.payCode === PAY_CODE.MOMO ||
+      params?.payCode === PAY_CODE.ZALO_PAY
+    ) {
       onError({
         code: ERROR_CODE.UNKNOWN_PAYCODE,
-        message: 'Phương thức thanh toán không được hỗ trợ. Vui lòng kiểm tra lại!'
+        message:
+          'Phương thức thanh toán không được hỗ trợ. Vui lòng kiểm tra lại!'
       })
       return false
     }
     return true
-  };
+  }
 
   login = async (configs, onSuccess, onError) => {
     this.configs = configs
@@ -1184,11 +1191,15 @@ export default class WebPaymeSDK extends Component {
                   responseAccountInit.response?.OpenEWallet?.Init?.kyc &&
                   responseAccountInit.response?.OpenEWallet?.Init?.kyc?.kycId
                 ) {
-                  if (responseAccountInit.response?.OpenEWallet?.Init?.kyc
-                    ?.state === 'APPROVED') {
+                  if (
+                    responseAccountInit.response?.OpenEWallet?.Init?.kyc
+                      ?.state === 'APPROVED'
+                  ) {
                     accountStatus = ACCOUNT_STATUS.KYC_APPROVED
-                  } else if (responseAccountInit.response?.OpenEWallet?.Init?.kyc
-                    ?.state === 'PENDING') {
+                  } else if (
+                    responseAccountInit.response?.OpenEWallet?.Init?.kyc
+                      ?.state === 'PENDING'
+                  ) {
                     accountStatus = ACCOUNT_STATUS.KYC_REVIEW
                   } else {
                     accountStatus = ACCOUNT_STATUS.KYC_REJECTED
@@ -1431,13 +1442,16 @@ export default class WebPaymeSDK extends Component {
       return
     }
 
-    //check payCode
-    const checkPaycode = await this.checkPaycode({
-      payCode: param?.payCode,
-    }, onError);
+    // check payCode
+    const checkPaycode = await this.checkPaycode(
+      {
+        payCode: param?.payCode
+      },
+      onError
+    )
 
     if (!checkPaycode) {
-      return;
+      return
     }
 
     const keys = {
@@ -1517,13 +1531,16 @@ export default class WebPaymeSDK extends Component {
       return
     }
 
-    //check payCode
-    const checkPaycode = await this.checkPaycode({
-      payCode: param?.payCode,
-    }, onError);
+    // check payCode
+    const checkPaycode = await this.checkPaycode(
+      {
+        payCode: param?.payCode
+      },
+      onError
+    )
 
     if (!checkPaycode) {
-      return;
+      return
     }
 
     this.setState({
@@ -1538,13 +1555,16 @@ export default class WebPaymeSDK extends Component {
   }
 
   payQRCode = async (param, onSuccess, onError) => {
-    //check payCode
-    const checkPaycode = await this.checkPaycode({
-      payCode: param?.payCode,
-    }, onError);
+    // check payCode
+    const checkPaycode = await this.checkPaycode(
+      {
+        payCode: param?.payCode
+      },
+      onError
+    )
 
     if (!checkPaycode) {
-      return;
+      return
     }
 
     const keys = {
@@ -1929,13 +1949,13 @@ export default class WebPaymeSDK extends Component {
     const styleVisible = this.propStyle
       ? this.propStyle
       : {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        overflow: 'hidden'
-      }
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          top: 0,
+          left: 0,
+          overflow: 'hidden'
+        }
 
     const containerStyleVisible = {
       display: 'block',
