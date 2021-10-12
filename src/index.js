@@ -578,122 +578,93 @@ export default class WebPaymeSDK extends Component {
 
     this._webPaymeSDK = null
     this._iframe = null
+  }
 
-    window.onmessage = (e) => {
-      // if (e.data.type === WALLET_ACTIONS.LOGIN) {
-      //   this.onCloseIframe()
-      //   if (e.data?.data) {
-      //     const newConfigs = {
-      //       ...this.configs,
-      //       ...e.data.data
-      //     }
-      //     this.configs = newConfigs
-      //     /* eslint-disable no-undef */
-      //     this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-      //     this.setState({
-      //       isLogin: true
-      //     })
-      //   }
-      //   const res = {
-      //     ...e.data,
-      //     data: { accountStatus: e.data?.data?.accountStatus }
-      //   }
-
-      //   this.sendRespone(res)
-      // }
-      if (e.data.type === WALLET_ACTIONS.RELOGIN) {
-        if (e.data?.data) {
-          const newConfigs = {
-            ...this.configs,
-            ...e.data.data
-          }
-          this.configs = newConfigs
-          /* eslint-disable no-undef */
-          this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+  handlerMessage = (e) => {
+    if (e.data.type === WALLET_ACTIONS.RELOGIN) {
+      if (e.data?.data) {
+        const newConfigs = {
+          ...this.configs,
+          ...e.data.data
         }
+        this.configs = newConfigs
+        /* eslint-disable no-undef */
+        this._webPaymeSDK = new PaymeWebSdk(newConfigs)
       }
-      if (e.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
+    }
+    if (e.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
+      this.onCloseIframe()
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === 'onClose') {
+      document.getElementById(this.id).innerHTML = ''
+      this.onCloseIframe()
+      this.sendRespone({
+        error: { code: ERROR_CODE.CLOSE_IFRAME, message: 'Đóng iframe' }
+      })
+    }
+    if (e.data?.type === 'error') {
+      if (e.data?.code === 401) {
         this.onCloseIframe()
-        this.sendRespone(e.data)
+        window.removeEventListener('message', this.handlerMessage) // khi bị 401 thì ngừng nghe message
+        localStorage.removeItem('PAYME')
       }
-      if (e.data?.type === 'onClose') {
-        document.getElementById(this.id).innerHTML = ''
-        this.onCloseIframe()
-        this.sendRespone({
-          error: { code: ERROR_CODE.CLOSE_IFRAME, message: 'Đóng iframe' }
-        })
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
+      this.onCloseIframe()
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.GET_LIST_SERVICE) {
+      this.onCloseIframe()
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.PAY) {
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.SCAN_QR_CODE) {
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.DEPOSIT) {
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.WITHDRAW) {
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.TRANSFER) {
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.OPEN_SERVICE) {
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD) {
+      this.onCloseIframe()
+      this.sendRespone(e.data)
+    }
+    if (e.data?.type === 'onDeposit' || e.data?.type === 'onWithDraw') {
+      this.onCloseIframe()
+      const res = { ...e.data }
+      if (e.data?.data?.status === 'FAILED') {
+        res.error = e.data?.data
       }
-      if (e.data?.type === 'error') {
-        if (e.data?.code === 401) {
-          this.onCloseIframe()
-          localStorage.removeItem('PAYME')
-        }
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.GET_ACCOUNT_INFO) {
-        this.onCloseIframe()
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.GET_LIST_SERVICE) {
-        this.onCloseIframe()
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.PAY) {
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.SCAN_QR_CODE) {
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.DEPOSIT) {
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.WITHDRAW) {
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.TRANSFER) {
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.OPEN_SERVICE) {
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === WALLET_ACTIONS.GET_LIST_PAYMENT_METHOD) {
-        this.onCloseIframe()
-        this.sendRespone(e.data)
-      }
-      if (e.data?.type === 'onDeposit' || e.data?.type === 'onWithDraw') {
-        this.onCloseIframe()
-        const res = { ...e.data }
-        if (e.data?.data?.status === 'FAILED') {
-          res.error = e.data?.data
-        }
-        this.sendRespone(res)
-      }
+      this.sendRespone(res)
     }
   }
 
   componentDidMount = async () => {
+    window.addEventListener('message', this.handlerMessage)
     const dataLocalStorage = await this.getLocalStorage()
     if (dataLocalStorage?.phone && dataLocalStorage?.accessToken) {
-      this.configs = dataLocalStorage
-      this._webPaymeSDK = new PaymeWebSdk(dataLocalStorage)
-    }
-  }
-
-  async getLocalStorage() {
-    const localStoragePayME = localStorage.getItem('PAYME')
-
-    if (localStoragePayME) {
-      const configsDecrypt = await this.decrypt(localStoragePayME)
-      try {
-        const parsed = JSON.parse(configsDecrypt)
-        return parsed
-      } catch (error) {
-        return {}
+      this.configs = {
+        ...this.configs,
+        ...dataLocalStorage
       }
+      this._webPaymeSDK = new PaymeWebSdk(this.configs)
     }
   }
 
   componentWillUnmount() {
+    window.removeEventListener('message', this.handlerMessage)
     localStorage.removeItem('PAYME')
   }
 
@@ -1181,8 +1152,11 @@ export default class WebPaymeSDK extends Component {
     this.configs = configs
     const dataLocalStorage = await this.getLocalStorage()
     if (dataLocalStorage?.phone === configs?.phone) {
-      this.configs = dataLocalStorage
-      this._webPaymeSDK = new PaymeWebSdk(dataLocalStorage)
+      this.configs = {
+        ...this.configs,
+        ...dataLocalStorage
+      }
+      this._webPaymeSDK = new PaymeWebSdk(this.configs)
       onSuccess({ accountStatus: dataLocalStorage.accountStatus })
     } else if (configs?.connectToken) {
       // Check trường hợp account đang login hay không? (Có connectToken có nghĩa là đang login)
@@ -1997,13 +1971,13 @@ export default class WebPaymeSDK extends Component {
     const styleVisible = this.propStyle
       ? this.propStyle
       : {
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          top: 0,
-          left: 0,
-          overflow: 'hidden'
-        }
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        overflow: 'hidden'
+      }
 
     const containerStyleVisible = {
       display: 'block',
