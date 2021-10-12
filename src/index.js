@@ -569,8 +569,7 @@ export default class WebPaymeSDK extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      iframeVisible: { state: false }, // Biến dùng để bật tắt iFreame
-      isLogin: false
+      iframeVisible: { state: false } // Biến dùng để bật tắt iFreame
     }
     this.id = 'paymeId'
     this.configs = props?.config
@@ -611,10 +610,6 @@ export default class WebPaymeSDK extends Component {
           this.configs = newConfigs
           /* eslint-disable no-undef */
           this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-          localStorage.setItem('PAYME Login', true)
-          this.setState({
-            isLogin: true
-          })
         }
       }
       if (e.data?.type === WALLET_ACTIONS.GET_WALLET_INFO) {
@@ -631,10 +626,7 @@ export default class WebPaymeSDK extends Component {
       if (e.data?.type === 'error') {
         if (e.data?.code === 401) {
           this.onCloseIframe()
-          localStorage.setItem('PAYME Login', false)
-          this.setState({
-            isLogin: false
-          })
+          localStorage.removeItem('PAYME')
         }
         this.sendRespone(e.data)
       }
@@ -679,42 +671,30 @@ export default class WebPaymeSDK extends Component {
     }
   }
 
-  componentDidMount = () => {
-    this.getLocalStorage()
+  componentDidMount = async () => {
+    const dataLocalStorage = await this.getLocalStorage()
+    if (dataLocalStorage?.phone && dataLocalStorage?.accessToken) {
+      this.configs = dataLocalStorage
+      this._webPaymeSDK = new PaymeWebSdk(dataLocalStorage)
+    }
   }
 
   async getLocalStorage() {
     const localStoragePayME = localStorage.getItem('PAYME')
-    const localStoragePayMELogin = JSON.parse(
-      localStorage.getItem('PAYME Login')
-    )
 
-    if (localStoragePayMELogin) {
-      if (localStoragePayME) {
-        const configsDecrypt = await this.decrypt(localStoragePayME)
-        try {
-          const parsed = JSON.parse(configsDecrypt)
-          // console.log('-----this.configs', this.configs)
-          // console.log('-----parse', parsed)
-          if (
-            this.configs.appId === parsed?.appId &&
-            this.configs.appToken === parsed.appToken
-          ) {
-            this.setState({ isLogin: localStoragePayMELogin })
-            this.configs = parsed
-            this._webPaymeSDK = new PaymeWebSdk(parsed)
-          }
-        } catch (error) {}
+    if (localStoragePayME) {
+      const configsDecrypt = await this.decrypt(localStoragePayME)
+      try {
+        const parsed = JSON.parse(configsDecrypt)
+        return parsed
+      } catch (error) {
+        return {}
       }
     }
   }
 
   componentWillUnmount() {
     localStorage.removeItem('PAYME')
-    localStorage.removeItem('PAYME Login')
-    this.setState({
-      isLogin: false
-    })
   }
 
   onCloseIframe = () => {
@@ -1138,6 +1118,17 @@ export default class WebPaymeSDK extends Component {
     )
   }
 
+  checkIsLogin = async () => {
+    if (
+      this.configs?.phone &&
+      this.configs?.connectToken &&
+      this.configs?.accessToken
+    ) {
+      return true
+    }
+    return false
+  }
+
   checkPaycode = async (
     params = {
       payCode: '',
@@ -1177,9 +1168,7 @@ export default class WebPaymeSDK extends Component {
   logout = (onSucces, onError) => {
     try {
       localStorage.removeItem('PAYME')
-      localStorage.removeItem('PAYME Login')
-      this.setState({ isLogin: false })
-      onSucces({ message: 'Success' })
+      onSucces({ message: 'SUCCEEDED' })
     } catch (error) {
       onError({
         code: ERROR_CODE.SYSTEM,
@@ -1190,7 +1179,12 @@ export default class WebPaymeSDK extends Component {
 
   login = async (configs, onSuccess, onError) => {
     this.configs = configs
-    if (configs?.connectToken) {
+    const dataLocalStorage = await this.getLocalStorage()
+    if (dataLocalStorage?.phone === configs?.phone) {
+      this.configs = dataLocalStorage
+      this._webPaymeSDK = new PaymeWebSdk(dataLocalStorage)
+      onSuccess({ accountStatus: dataLocalStorage.accountStatus })
+    } else if (configs?.connectToken) {
       // Check trường hợp account đang login hay không? (Có connectToken có nghĩa là đang login)
       try {
         const keys = {
@@ -1276,10 +1270,6 @@ export default class WebPaymeSDK extends Component {
                 }
                 this.configs = newConfigs
                 this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-                localStorage.setItem('PAYME Login', true)
-                this.setState({
-                  isLogin: true
-                })
                 onSuccess({ accountStatus: responseLogin.data.accountStatus })
               } else if (!accessToken && updateToken) {
                 const responseLogin = {
@@ -1302,10 +1292,6 @@ export default class WebPaymeSDK extends Component {
                 }
                 this.configs = newConfigs
                 this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-                localStorage.setItem('PAYME Login', true)
-                this.setState({
-                  isLogin: true
-                })
                 onSuccess({ accountStatus: responseLogin.data.accountStatus })
               } else {
                 onError({
@@ -1368,15 +1354,13 @@ export default class WebPaymeSDK extends Component {
         code: ERROR_CODE.SYSTEM,
         message: 'Thiếu thông tin connectToken'
       })
-      localStorage.setItem('PAYME Login', false)
-      this.setState({
-        isLogin: false
-      })
+      localStorage.removeItem('PAYME')
     }
   }
 
   openWallet = async (onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1384,7 +1368,7 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true }
     })
-    const iframe = await this._webPaymeSDK.createOpenWalletURL()
+    const iframe = await this._webPaymeSDK?.createOpenWalletURL()
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1392,7 +1376,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   openHistory = async (onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1408,7 +1393,7 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true }
     })
-    const iframe = await this._webPaymeSDK.createOpenHistoryURL()
+    const iframe = await this._webPaymeSDK?.createOpenHistoryURL()
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1416,7 +1401,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   deposit = async (param, onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1433,7 +1419,7 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true }
     })
 
-    const iframe = await this._webPaymeSDK.createDepositURL(param)
+    const iframe = await this._webPaymeSDK?.createDepositURL(param)
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1441,7 +1427,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   withdraw = async (param, onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1458,7 +1445,7 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true }
     })
 
-    const iframe = await this._webPaymeSDK.createWithdrawURL(param)
+    const iframe = await this._webPaymeSDK?.createWithdrawURL(param)
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1466,7 +1453,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   transfer = async (param, onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1483,7 +1471,7 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true }
     })
 
-    const iframe = await this._webPaymeSDK.createTransferURL(param)
+    const iframe = await this._webPaymeSDK?.createTransferURL(param)
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1491,7 +1479,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   pay = async (param, onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1572,7 +1561,7 @@ export default class WebPaymeSDK extends Component {
     this.setState({
       iframeVisible: { state: true }
     })
-    const iframe = await this._webPaymeSDK.createPayURL(param)
+    const iframe = await this._webPaymeSDK?.createPayURL(param)
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1580,7 +1569,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   scanQR = async (param, onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1601,7 +1591,7 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true }
     })
 
-    const iframe = await this._webPaymeSDK.createScanQR(param)
+    const iframe = await this._webPaymeSDK?.createScanQR(param)
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1731,7 +1721,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   getBalance = async (onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1793,7 +1784,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   getListService = async (onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1855,7 +1847,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   getAccountInfo = async (onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1907,7 +1900,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   openService = async (serviceCode, onSuccess, onError) => {
-    if (!this.state.isLogin) {
+    const checkLogin = await this.checkIsLogin()
+    if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
       return
     }
@@ -1924,7 +1918,7 @@ export default class WebPaymeSDK extends Component {
       iframeVisible: { state: true }
     })
 
-    const iframe = await this._webPaymeSDK.createOpenServiceURL(serviceCode)
+    const iframe = await this._webPaymeSDK?.createOpenServiceURL(serviceCode)
     this.openIframe(iframe)
 
     this._onSuccess = onSuccess
@@ -1932,7 +1926,8 @@ export default class WebPaymeSDK extends Component {
   }
 
   // getListPaymentMethod = async (param, onSuccess, onError) => {
-  //   if (!this.state.isLogin) {
+  //   const checkLogin = await this.checkIsLogin()
+  // if(!checkLogin) {
   //     onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
   //     return
   //   }
