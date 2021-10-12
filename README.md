@@ -27,7 +27,7 @@ PayME SDK là bộ thư viện để các app có thể tương tác với PayME
 Hệ thống PayME sẽ cung cấp cho app tích hợp các thông tin sau:
 
 -   **PublicKey**  : Dùng để mã hóa dữ liệu, app tích hợp cần truyền cho SDK để mã hóa.
--   **AppToken**  : AppId cấp riêng định danh cho mỗi app, cần truyền cho SDK để mã hóa
+-   **AppToken**  : AppToken cấp riêng định danh cho mỗi app, cần truyền cho SDK để mã hóa
 -   **SecretKey**  : Dùng đã mã hóa và xác thực dữ liệu ở hệ thống backend cho app tích hợp.
 
 Bên App sẽ cung cấp cho hệ thống PayME các thông tin sau:
@@ -166,6 +166,19 @@ const connectToken = encrypted + cipher.final('base64')
 | ***phone*** | Yes | Số điện thoại của hệ thống tích hợp |
 
 Trong đó ***AES*** là hàm mã hóa theo thuật toán AES. Tùy vào ngôn ngữ ở server mà bên hệ thống dùng thư viện tương ứng. Xem thêm tại đây https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
+
+#### logout
+Clear thông tin tài khoản đã login. Sau khi logout thì cần thực hiện login lại để thực hiện các chức năng.
+```javascript
+refWebPaymeSDK.current.logout(
+   (response) => {
+      // onSuccess
+   },
+   (error) => {
+      // onError
+   }
+)
+```
 
 #### getAccountInfo
 App có thể dùng thuộc tính này sau khi khởi tạo SDK để biết được trạng thái liên kết tới ví PayME.

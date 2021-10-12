@@ -569,7 +569,7 @@ export default class WebPaymeSDK extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      iframeVisible: { state: false, hidden: false }, // Biến dùng để bật tắt iFreame
+      iframeVisible: { state: false }, // Biến dùng để bật tắt iFreame
       isLogin: false
     }
     this.id = 'paymeId'
@@ -581,27 +581,27 @@ export default class WebPaymeSDK extends Component {
     this._iframe = null
 
     window.onmessage = (e) => {
-      if (e.data.type === WALLET_ACTIONS.LOGIN) {
-        this.onCloseIframe()
-        if (e.data?.data) {
-          const newConfigs = {
-            ...this.configs,
-            ...e.data.data
-          }
-          this.configs = newConfigs
-          /* eslint-disable no-undef */
-          this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-          this.setState({
-            isLogin: true
-          })
-        }
-        const res = {
-          ...e.data,
-          data: { accountStatus: e.data?.data?.accountStatus }
-        }
+      // if (e.data.type === WALLET_ACTIONS.LOGIN) {
+      //   this.onCloseIframe()
+      //   if (e.data?.data) {
+      //     const newConfigs = {
+      //       ...this.configs,
+      //       ...e.data.data
+      //     }
+      //     this.configs = newConfigs
+      //     /* eslint-disable no-undef */
+      //     this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+      //     this.setState({
+      //       isLogin: true
+      //     })
+      //   }
+      //   const res = {
+      //     ...e.data,
+      //     data: { accountStatus: e.data?.data?.accountStatus }
+      //   }
 
-        this.sendRespone(res)
-      }
+      //   this.sendRespone(res)
+      // }
       if (e.data.type === WALLET_ACTIONS.RELOGIN) {
         if (e.data?.data) {
           const newConfigs = {
@@ -611,6 +611,7 @@ export default class WebPaymeSDK extends Component {
           this.configs = newConfigs
           /* eslint-disable no-undef */
           this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+          localStorage.setItem('PAYME Login', true)
           this.setState({
             isLogin: true
           })
@@ -630,6 +631,7 @@ export default class WebPaymeSDK extends Component {
       if (e.data?.type === 'error') {
         if (e.data?.code === 401) {
           this.onCloseIframe()
+          localStorage.setItem('PAYME Login', false)
           this.setState({
             isLogin: false
           })
@@ -677,19 +679,39 @@ export default class WebPaymeSDK extends Component {
     }
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.config !== this.props.config) {
-      if (!this.props.config.connectToken) {
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({
-          isLogin: false
-        })
+  componentDidMount = () => {
+    this.getLocalStorage()
+  }
+
+  async getLocalStorage() {
+    const localStoragePayME = localStorage.getItem('PAYME')
+    const localStoragePayMELogin = JSON.parse(
+      localStorage.getItem('PAYME Login')
+    )
+
+    if (localStoragePayMELogin) {
+      if (localStoragePayME) {
+        const configsDecrypt = await this.decrypt(localStoragePayME)
+        try {
+          const parsed = JSON.parse(configsDecrypt)
+          // console.log('-----this.configs', this.configs)
+          // console.log('-----parse', parsed)
+          if (
+            this.configs.appId === parsed?.appId &&
+            this.configs.appToken === parsed.appToken
+          ) {
+            this.setState({ isLogin: localStoragePayMELogin })
+            this.configs = parsed
+            this._webPaymeSDK = new PaymeWebSdk(parsed)
+          }
+        } catch (error) {}
       }
-      this.configs = this.props.config
     }
   }
 
   componentWillUnmount() {
+    localStorage.removeItem('PAYME')
+    localStorage.removeItem('PAYME Login')
     this.setState({
       isLogin: false
     })
@@ -698,7 +720,7 @@ export default class WebPaymeSDK extends Component {
   onCloseIframe = () => {
     this.setState(
       {
-        iframeVisible: { state: false, hidden: false }
+        iframeVisible: { state: false }
       },
       () => this._iframe?.remove()
     )
@@ -712,6 +734,21 @@ export default class WebPaymeSDK extends Component {
     } else {
       if (this._onSuccess) this._onSuccess(data)
     }
+  }
+
+  decrypt(text) {
+    const secretKey = 'CMo359Lqx16QYi3x'
+    return this.loadScript(
+      'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js'
+    )
+      .then(() => {
+        // eslint-disable-next-line no-undef
+        const decrypted = CryptoJS.AES.decrypt(text, secretKey).toString(
+          CryptoJS.enc.Utf8
+        )
+        return decrypted
+      })
+      .catch((err) => console.error('Something went wrong.', err))
   }
 
   loadScript(src) {
@@ -1137,6 +1174,20 @@ export default class WebPaymeSDK extends Component {
     return true
   }
 
+  logout = (onSucces, onError) => {
+    try {
+      localStorage.removeItem('PAYME')
+      localStorage.removeItem('PAYME Login')
+      this.setState({ isLogin: false })
+      onSucces({ message: 'Success' })
+    } catch (error) {
+      onError({
+        code: ERROR_CODE.SYSTEM,
+        message: error.message ?? 'Có lỗi xảy ra!'
+      })
+    }
+  }
+
   login = async (configs, onSuccess, onError) => {
     this.configs = configs
     if (configs?.connectToken) {
@@ -1225,6 +1276,7 @@ export default class WebPaymeSDK extends Component {
                 }
                 this.configs = newConfigs
                 this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+                localStorage.setItem('PAYME Login', true)
                 this.setState({
                   isLogin: true
                 })
@@ -1250,6 +1302,7 @@ export default class WebPaymeSDK extends Component {
                 }
                 this.configs = newConfigs
                 this._webPaymeSDK = new PaymeWebSdk(newConfigs)
+                localStorage.setItem('PAYME Login', true)
                 this.setState({
                   isLogin: true
                 })
@@ -1315,6 +1368,7 @@ export default class WebPaymeSDK extends Component {
         code: ERROR_CODE.SYSTEM,
         message: 'Thiếu thông tin connectToken'
       })
+      localStorage.setItem('PAYME Login', false)
       this.setState({
         isLogin: false
       })
@@ -1328,7 +1382,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     this.setState({
-      iframeVisible: { state: true, hidden: false }
+      iframeVisible: { state: true }
     })
     const iframe = await this._webPaymeSDK.createOpenWalletURL()
     this.openIframe(iframe)
@@ -1352,7 +1406,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     this.setState({
-      iframeVisible: { state: true, hidden: false }
+      iframeVisible: { state: true }
     })
     const iframe = await this._webPaymeSDK.createOpenHistoryURL()
     this.openIframe(iframe)
@@ -1376,7 +1430,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     this.setState({
-      iframeVisible: { state: true, hidden: false }
+      iframeVisible: { state: true }
     })
 
     const iframe = await this._webPaymeSDK.createDepositURL(param)
@@ -1401,7 +1455,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     this.setState({
-      iframeVisible: { state: true, hidden: false }
+      iframeVisible: { state: true }
     })
 
     const iframe = await this._webPaymeSDK.createWithdrawURL(param)
@@ -1426,7 +1480,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     this.setState({
-      iframeVisible: { state: true, hidden: false }
+      iframeVisible: { state: true }
     })
 
     const iframe = await this._webPaymeSDK.createTransferURL(param)
@@ -1516,7 +1570,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     this.setState({
-      iframeVisible: { state: true, hidden: false }
+      iframeVisible: { state: true }
     })
     const iframe = await this._webPaymeSDK.createPayURL(param)
     this.openIframe(iframe)
@@ -1544,7 +1598,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     this.setState({
-      iframeVisible: { state: true, hidden: false }
+      iframeVisible: { state: true }
     })
 
     const iframe = await this._webPaymeSDK.createScanQR(param)
@@ -1867,7 +1921,7 @@ export default class WebPaymeSDK extends Component {
     }
 
     this.setState({
-      iframeVisible: { state: true, hidden: false }
+      iframeVisible: { state: true }
     })
 
     const iframe = await this._webPaymeSDK.createOpenServiceURL(serviceCode)
@@ -1945,7 +1999,6 @@ export default class WebPaymeSDK extends Component {
 
   render() {
     const { iframeVisible } = this.state
-    const { hidden } = iframeVisible
     const styleVisible = this.propStyle
       ? this.propStyle
       : {
@@ -1967,26 +2020,14 @@ export default class WebPaymeSDK extends Component {
       backgroundColor: 'rgba(0, 0, 0, 0.4)'
     }
 
-    const styleHidden = {
-      display: 'none'
-    }
-
-    const containerStyleHidden = {
-      ...containerStyleVisible,
-      display: 'none'
-    }
-
-    const style = hidden ? styleHidden : styleVisible
-    const containerStyle = hidden ? containerStyleHidden : containerStyleVisible
-
     if (!iframeVisible.state) return null
 
     return this.overlayBackground ? (
-      <div style={{ ...containerStyle }}>
-        <div style={{ ...style }} id={this.id} />
+      <div style={{ ...containerStyleVisible }}>
+        <div style={{ ...styleVisible }} id={this.id} />
       </div>
     ) : (
-      <div style={{ ...style }} id={this.id} />
+      <div style={{ ...styleVisible }} id={this.id} />
     )
   }
 }
@@ -2015,8 +2056,14 @@ class PaymeWebSdk {
   }
 
   constructor(configs, settings) {
+    this.saveLocalStorage(configs)
     this.configs = configs
     this.domain = this.getDomain(configs.env.toLowerCase())
+  }
+
+  async saveLocalStorage(configs) {
+    const encrypted = await this.encrypt(configs)
+    localStorage.setItem('PAYME', encrypted)
   }
 
   getDomain(env) {
