@@ -660,6 +660,20 @@ export default class WebPaymeSDK extends Component {
     localStorage.removeItem('PAYME')
   }
 
+  async getLocalStorage() {
+    const localStoragePayME = localStorage.getItem('PAYME')
+
+    if (localStoragePayME) {
+      const configsDecrypt = await this.decrypt(localStoragePayME)
+      try {
+        const parsed = JSON.parse(configsDecrypt)
+        return parsed
+      } catch (error) {
+        return {}
+      }
+    }
+  }
+
   onCloseIframe = () => {
     this.setState(
       {
