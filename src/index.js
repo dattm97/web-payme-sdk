@@ -653,14 +653,6 @@ export default class WebPaymeSDK extends Component {
 
   componentDidMount = async () => {
     window.addEventListener('message', this.handlerMessage)
-    const dataLocalStorage = await this.getLocalStorage()
-    if (dataLocalStorage?.phone && dataLocalStorage?.accessToken) {
-      this.configs = {
-        ...this.configs,
-        ...dataLocalStorage
-      }
-      this._webPaymeSDK = new PaymeWebSdk(this.configs)
-    }
   }
 
   componentWillUnmount() {

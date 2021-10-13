@@ -168,7 +168,10 @@ const connectToken = encrypted + cipher.final('base64')
 Trong đó ***AES*** là hàm mã hóa theo thuật toán AES. Tùy vào ngôn ngữ ở server mà bên hệ thống dùng thư viện tương ứng. Xem thêm tại đây https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 
 #### logout
-Clear thông tin tài khoản đã login. Sau khi logout thì cần thực hiện login lại để thực hiện các chức năng.
+
+⚠️⚠️⚠️ version 1.4.12 trở đi
+
+Clear cache thông tin tài khoản đã login. Sau khi logout thì cần thực hiện login lại để thực hiện các chức năng.
 ```javascript
 refWebPaymeSDK.current.logout(
    (response) => {
