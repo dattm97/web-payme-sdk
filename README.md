@@ -247,7 +247,7 @@ refWebPaymeSDK.current.scanQR(
 
 | **Tham số** | **Bắt buộc** | **Giải thích** |
 | :----------------------------------------------------------- | :----------- | :----------------------------------------------------------- |
-| payCode | Yes | `PAYME`, `CREDIT`, `ATM`, `MANUAL_BANK` (Xem thêm các phương thức khác ở phía dưới) |
+| payCode | Yes | [Danh sách phương thức thanh toán](#danh-sách-phương-thức-thanh-toán) |
 
 
 Định dạng QR: 
@@ -289,7 +289,7 @@ refWebPaymeSDK.current.payQRCode(
 | **Tham số** | **Bắt buộc** | **Giải thích** |
 | :----------------------------------------------------------- | :----------- | :----------------------------------------------------------- |
 | qrContent | Yes| Nội dung QR Code |
-| payCode | Yes | `PAYME`, `CREDIT`, `ATM`, `MANUAL_BANK` (Xem thêm các phương thức khác ở phía dưới) |
+| payCode | Yes | [Danh sách phương thức thanh toán](#danh-sách-phương-thức-thanh-toán) |
 | isShowResultUI | No | Option hiển thị UI kết quả thanh toán. Default: true |
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện giao dịch thành công từ PayME SDK |
 | onError | Yes | Dùng để bắt callback khi có lỗi xảy ra trong quá trình gọi PayME SDK |
@@ -316,7 +316,7 @@ refWebPaymeSDK.current?.deposit(
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện giao dịch thành công từ PayME SDK |
 | onError | Yes | Dùng để bắt callback khi có lỗi xảy ra trong quá trình gọi PayME SDK |
 
-#### withdraw - Nạp tiền
+#### withdraw - Rút tiền
 ```javascript
 refWebPaymeSDK.current?.withdraw(
    {
@@ -451,7 +451,7 @@ refWebPaymeSDK.current.pay(
 | orderId | Yes | Mã giao dịch của đối tác, cần duy nhất trên mỗi giao dịch. |
 | storeId | Yes | ID của store phía cổng thanh toán thực hiên giao dịch thanh toán. |
 | isShowResultUI | No | Option hiển thị UI kết quả thanh toán. Default: true |
-| payCode | Yes | `PAYME`, `CREDIT`, `ATM`, `MANUAL_BANK` (Xem thêm các phương thức khác ở phía dưới) |
+| payCode | Yes | [Danh sách phương thức thanh toán](#danh-sách-phương-thức-thanh-toán) |
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện giao dịch thành công từ PayME SDK |
 | onError | Yes | Dùng để bắt callback khi có lỗi xảy ra trong quá trình gọi PayME SDK |
 
@@ -487,9 +487,6 @@ refWebPaymeSDK.current.getWalletInfo(response => {
 | MANUAL_BANK  | Thanh toán chuyển khoản ngân hàng |
 | VN_PAY  | Thanh toán QR Code ngân hàng |
 | CREDIT  | Thanh toán thẻ tín dụng |
-| MOMO  | Thanh toán ví MoMo |
-| ZALO_PAY  | Thanh toán ví ZaloPay |
-
 
 ## License
 Copyright 2020 @ [PayME](payme.vn)

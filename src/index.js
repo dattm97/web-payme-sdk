@@ -849,7 +849,7 @@ export default class WebPaymeSDK extends Component {
     return this.handleResponse(res)
   }
 
-  async getWalletInfo(params, keys) {
+  async getWalletInfoAPI(params, keys) {
     const res = await this.callGraphql(SQL_GET_BALANCE, {}, keys)
     return this.handleResponse(res)
   }
@@ -1700,7 +1700,7 @@ export default class WebPaymeSDK extends Component {
     }
   }
 
-  getBalance = async (onSuccess, onError) => {
+  getWalletInfo = async (onSuccess, onError) => {
     const checkLogin = await this.checkIsLogin()
     if (!checkLogin) {
       onError({ code: ERROR_CODE.NOT_LOGIN, message: 'NOT LOGIN' })
@@ -1722,7 +1722,7 @@ export default class WebPaymeSDK extends Component {
         accessToken: this.configs.accessToken,
         appId: this.configs?.xApi ?? this.configs?.appId
       }
-      const responseGetWalletInfo = await this.getWalletInfo({}, keys)
+      const responseGetWalletInfo = await this.getWalletInfoAPI({}, keys)
       if (responseGetWalletInfo.status) {
         onSuccess(responseGetWalletInfo.response?.Wallet ?? {})
       } else {
@@ -1748,19 +1748,6 @@ export default class WebPaymeSDK extends Component {
         message: error.message ?? 'Có lỗi xảy ra'
       })
     }
-  }
-
-  getBalanceInternal = () => {
-    return new Promise((resolve) => {
-      this.getBalance(
-        (res) => {
-          resolve({ status: true, data: res })
-        },
-        (err) => {
-          resolve({ status: false, error: err })
-        }
-      )
-    })
   }
 
   getListService = async (onSuccess, onError) => {
@@ -1977,13 +1964,13 @@ export default class WebPaymeSDK extends Component {
     const styleVisible = this.propStyle
       ? this.propStyle
       : {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        overflow: 'hidden'
-      }
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          top: 0,
+          left: 0,
+          overflow: 'hidden'
+        }
 
     const containerStyleVisible = {
       display: 'block',
@@ -2097,19 +2084,6 @@ class PaymeWebSdk {
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
 
-  async createGetBalanceURL() {
-    const configs = {
-      ...this.configs,
-      actions: {
-        type: this.WALLET_ACTIONS.GET_WALLET_INFO
-      }
-    }
-
-    const encrypt = await this.encrypt(configs)
-
-    return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
-  }
-
   async createOpenWalletURL() {
     const configs = {
       ...this.configs,
@@ -2202,18 +2176,6 @@ class PaymeWebSdk {
         note: param.note,
         isShowResultUI: param.isShowResultUI,
         payCode: param.payCode
-      }
-    }
-    const encrypt = await this.encrypt(configs)
-
-    return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
-  }
-
-  async createGetAccountInfoURL() {
-    const configs = {
-      ...this.configs,
-      actions: {
-        type: this.WALLET_ACTIONS.GET_ACCOUNT_INFO
       }
     }
     const encrypt = await this.encrypt(configs)
