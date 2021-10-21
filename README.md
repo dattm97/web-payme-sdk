@@ -142,21 +142,58 @@ refWebPaymeSDK.current.login(
 | `connectToken` | `string` | app cần truyền giá trị được cung cấp ở trên, xem cách tạo bên dưới. |
 | `phone` | `string` | Số điện thoại của hệ thống tích hợp |
 
-Cách tạo **connectToken**:
+Cách tạo **connectToken**: 
+
 connectToken cần để truyền gọi api từ tới PayME và sẽ được tạo từ hệ thống backend của app tích hợp. Cấu trúc như sau:
+
 ```javascript
-import crypto from 'crypto'
-const data = {
-  timestamp:  "2021-01-20T06:53:07.621Z",
-  userId :  "ABC",
-  phone :  "0909998877"
+import forge from 'node-forge'
+
+function encryptAES(text, secretKey) {
+  // parse data into base64
+  const iv = Buffer.from(ivbyte);
+  const algorithm = determineAlthorithm(secretKey);
+  const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
+  let encrypted = cipher.update(text, 'utf8', 'base64');
+  encrypted += cipher.final('base64');
+  return encrypted;
 }
-const algorithm = `aes-256-cbc`
-const ivbyte = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-const iv = Buffer.from(ivbyte)
-const cipher = crypto.createCipheriv(algorithm, secretKey, iv)
-const encrypted = cipher.update(JSON.stringify(data), 'utf8', 'base64')
-const connectToken = encrypted + cipher.final('base64')
+
+const data = {
+  timestamp: "2021-01-20T06:53:07.621Z",
+  userId : "abc",
+  phone : "0123456789"
+};
+
+const connectToken = encryptAES(JSON.stringify(data), appSecretkey)
+```
+
+Tạo connectToken bao gồm thông tin KYC (Dành cho các đối tác có hệ thống KYC riêng)
+
+```javascript
+const data = {
+  timestamp: "2021-01-20T06:53:07.621Z",
+  userId : "abc",
+  phone : "0123456789",
+  kycInfo: {
+    fullname: "Nguyễn Văn A",
+    gender: "MALE",
+    birthday: "1995-01-20T06:53:07.621Z",
+    address: "15 Nguyễn cơ thạch",
+    identifyType: "CMND",
+    identifyNumber: "142744332",
+    issuedAt: "2013-01-20T06:53:07.621Z",
+    placeOfIssue: "Hồ Chí Minh",
+    video: "https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4",
+    face: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg",
+    image: {
+      front: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg",
+      back: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg"
+    }
+  }
+};
+
+const connectToken = encryptAES(JSON.stringify(data), appSecretkey)
 ```
 
 | **Tham số** | **Bắt buộc** | **Giải thích** |
@@ -166,6 +203,23 @@ const connectToken = encrypted + cipher.final('base64')
 | ***phone*** | Yes | Số điện thoại của hệ thống tích hợp |
 
 Trong đó ***AES*** là hàm mã hóa theo thuật toán AES. Tùy vào ngôn ngữ ở server mà bên hệ thống dùng thư viện tương ứng. Xem thêm tại đây https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
+
+Tham số KycInfo
+
+| **Tham số**   | **Bắt buộc** | **Giải thích** |
+| :------------ | :----------- | :----------------------------------------------------------- |
+| fullname | Yes          | Họ tên |
+| gender  | Yes          | Giới tính ( MALE/FEMALE) |
+| address   | Yes           | Địa chỉ |
+| identifyType   | Yes           | Loại giấy tờ (CMND/CCCD) |
+| identifyNumber   | Yes           | Số giấy tờ |
+| issuedAt   | Yes           | Ngày đăng ký |
+| placeOfIssue   | Yes           | Nơi cấp |
+| video   | No           | đường dẫn tới video |
+| face   | No           | đường dẫn tới ảnh chụp khuôn mặt |
+| front   | No           | đường dẫn tới ảnh mặt trước giấy tờ |
+| back   | No           | đường dẫn tới ảnh mặt sau giấy tờ |
+
 
 #### logout
 

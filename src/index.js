@@ -118,6 +118,7 @@ const SQL_INIT_ACCOUNT = `mutation AccountInitMutation($initInput: CheckInitInpu
        appEnv
        storeName
        storeImage
+       fullnameKyc
      }
    }
  }`
@@ -1096,12 +1097,13 @@ export default class WebPaymeSDK extends Component {
   }
 
   checkIsLogin = async () => {
-    if (
-      this.configs?.phone &&
-      this.configs?.connectToken &&
-      this.configs?.accessToken
-    ) {
-      return true
+    if (this.configs?.phone && this.configs?.connectToken) {
+      if (this.configs?.accessToken) {
+        return true
+      } else if (!this.configs?.accessToken && this.configs?.updateToken) {
+        return true
+      }
+      return false
     }
     return false
   }
@@ -1192,25 +1194,13 @@ export default class WebPaymeSDK extends Component {
               keys
             )
             if (responseAccountInit.status) {
-              const {
-                handShake,
-                accessToken = '',
-                phone = '',
-                updateToken,
-                kyc
-              } = responseAccountInit.response?.OpenEWallet?.Init ?? {}
+              const accessToken =
+                responseAccountInit.response?.OpenEWallet?.Init?.accessToken ??
+                ''
+              const updateToken =
+                responseAccountInit.response?.OpenEWallet?.Init?.updateToken
               let accountStatus = ACCOUNT_STATUS.NOT_ACTIVATED
 
-              // if (
-              //   configs.phone &&
-              //   convertPhoneNumberNation(phone) !==
-              //     convertPhoneNumberNation(configs.phone)
-              // ) {
-              //   onError({
-              //     code: ERROR_CODE.SYSTEM,
-              //     message: 'Số điện thoại không khớp với số đã đăng kí!',
-              //   });
-              // } else
               if (responseAccountInit.response?.OpenEWallet?.Init?.succeeded) {
                 if (
                   responseAccountInit.response?.OpenEWallet?.Init?.kyc &&
@@ -1232,47 +1222,35 @@ export default class WebPaymeSDK extends Component {
                 } else {
                   accountStatus = ACCOUNT_STATUS.NOT_KYC
                 }
-                const responseLogin = {
-                  data: {
-                    accountStatus,
-                    handShake,
-                    accessToken,
-                    phone: configs.phone ? configs.phone : phone,
-                    kyc,
-                    clientId:
-                      responseClientRegister.response?.Client?.Register
-                        ?.clientId
-                  }
-                }
                 const newConfigs = {
                   ...this.configs,
-                  ...responseLogin.data
+                  ...responseAccountInit.response?.OpenEWallet?.Init,
+                  accountStatus,
+                  phone: configs.phone
+                    ? configs.phone
+                    : responseAccountInit.response?.OpenEWallet?.Init?.phone ??
+                      '',
+                  clientId:
+                    responseClientRegister.response?.Client?.Register?.clientId
                 }
                 this.configs = newConfigs
                 this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-                onSuccess({ accountStatus: responseLogin.data.accountStatus })
+                onSuccess({ accountStatus })
               } else if (!accessToken && updateToken) {
-                const responseLogin = {
-                  data: {
-                    accountStatus,
-                    handShake,
-                    accessToken,
-                    phone: configs.phone ? configs.phone : phone,
-                    kyc,
-                    clientId:
-                      responseClientRegister.response?.Client?.Register
-                        ?.clientId
-                  }
-                }
                 const newConfigs = {
                   ...this.configs,
-                  ...responseLogin.data,
-                  dataInit:
-                    responseAccountInit.response?.OpenEWallet?.Init ?? {}
+                  ...responseAccountInit.response?.OpenEWallet?.Init,
+                  accountStatus,
+                  phone: configs.phone
+                    ? configs.phone
+                    : responseAccountInit.response?.OpenEWallet?.Init?.phone ??
+                      '',
+                  clientId:
+                    responseClientRegister.response?.Client?.Register?.clientId
                 }
                 this.configs = newConfigs
                 this._webPaymeSDK = new PaymeWebSdk(newConfigs)
-                onSuccess({ accountStatus: responseLogin.data.accountStatus })
+                onSuccess({ accountStatus })
               } else {
                 onError({
                   code: ERROR_CODE.SYSTEM,
