@@ -1159,7 +1159,10 @@ export default class WebPaymeSDK extends Component {
   login = async (configs, onSuccess, onError) => {
     this.configs = configs
     const dataLocalStorage = await this.getLocalStorage()
-    if (dataLocalStorage?.phone === configs?.phone) {
+    if (
+      dataLocalStorage?.phone === configs?.phone &&
+      dataLocalStorage?.userId === configs?.userId
+    ) {
       this.configs = {
         ...this.configs,
         ...dataLocalStorage

@@ -109,7 +109,8 @@ Sau khi gọi login() thành công rồi thì mới gọi các chức năng khá
 const configsLogin = {
    ...configs,
    connectToken,
-   phone
+   phone,
+   userId
 }
 refWebPaymeSDK.current.login(
    configsLogin,
@@ -141,6 +142,7 @@ refWebPaymeSDK.current.login(
 | -------------- | ---------- | ------------------------------------------------------------ |
 | `connectToken` | `string` | app cần truyền giá trị được cung cấp ở trên, xem cách tạo bên dưới. |
 | `phone` | `string` | Số điện thoại của hệ thống tích hợp |
+| `userId` | `string` | Là giá trị cố định duy nhất tương ứng với mỗi tài khoản khách hàng ở dịch vụ, thường giá trị này do server hệ thống được tích hợp cấp cho PayME SDK |
 
 Cách tạo **connectToken**: 
 
