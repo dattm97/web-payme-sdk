@@ -1147,6 +1147,7 @@ export default class WebPaymeSDK extends Component {
   logout = (onSucces, onError) => {
     try {
       localStorage.removeItem('PAYME')
+      this.configs = null
       onSucces({ message: 'SUCCEEDED' })
     } catch (error) {
       onError({
