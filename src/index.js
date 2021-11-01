@@ -1026,7 +1026,7 @@ export default class WebPaymeSDK extends Component {
         onDisconnect()
       }
     }
-    xhr.open('GET', 'https://jsonplaceholder.typicode.com/posts', true)
+    xhr.open('GET', 'https://httpbin.org/get', true)
     xhr.send()
   }
 
