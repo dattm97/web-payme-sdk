@@ -12,7 +12,6 @@ export const ERROR_CODE = {
   ERROR_KEY_ENCODE: -7,
   USER_CANCELLED: -8,
   NOT_LOGIN: -9,
-  CLOSE_IFRAME: -10,
   BALANCE_ERROR: -11,
   UNKNOWN_PAYCODE: -12
 }
@@ -600,9 +599,6 @@ export default class WebPaymeSDK extends Component {
     if (e.data?.type === 'onClose') {
       document.getElementById(this.id).innerHTML = ''
       this.onCloseIframe()
-      this.sendRespone({
-        error: { code: ERROR_CODE.CLOSE_IFRAME, message: 'Đóng iframe' }
-      })
     }
     if (e.data?.type === 'error') {
       if (e.data?.code === 401) {

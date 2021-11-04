@@ -91,7 +91,6 @@ class Example extends Component {
 | `ERROR_KEY_ENCODE` | `-7` | Lỗi mã hóa/giải mã dữ liệu |
 | `USER_CANCELLED` | `-8` | Người dùng thao tác hủy | 
 | `NOT_LOGIN` | `-9` | Lỗi tài khoản chưa login | 
-| `CLOSE_IFRAME` | `-10` | Đóng Iframe | 
 | `BALANCE_ERROR` | `-11` | Lỗi số dư ví không đủ | 
 | `UNKNOWN_PAYCODE` | `-12` | Lỗi thiếu thông tin payCode | 
 
