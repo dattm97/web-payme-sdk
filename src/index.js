@@ -638,7 +638,11 @@ export default class WebPaymeSDK extends Component {
       this.onCloseIframe()
       this.sendRespone(e.data)
     }
-    if (e.data?.type === 'onDeposit' || e.data?.type === 'onWithDraw') {
+    if (
+      e.data?.type === 'onDeposit' ||
+      e.data?.type === 'onWithDraw' ||
+      e.data?.type === 'onTransfer'
+    ) {
       this.onCloseIframe()
       const res = { ...e.data }
       if (e.data?.data?.status === 'FAILED') {
@@ -1018,7 +1022,7 @@ export default class WebPaymeSDK extends Component {
         onDisconnect()
       }
     }
-    xhr.open('GET', 'https://jsonplaceholder.typicode.com/posts', true)
+    xhr.open('GET', 'https://httpbin.org/get', true)
     xhr.send()
   }
 
