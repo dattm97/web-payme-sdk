@@ -1162,7 +1162,8 @@ export default class WebPaymeSDK extends Component {
     const dataLocalStorage = await this.getLocalStorage()
     if (
       dataLocalStorage?.phone === configs?.phone &&
-      dataLocalStorage?.userId === configs?.userId
+      dataLocalStorage?.userId === configs?.userId &&
+      dataLocalStorage?.env.toLowerCase() === configs?.env.toLowerCase()
     ) {
       this.configs = {
         ...this.configs,
