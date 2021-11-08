@@ -1170,7 +1170,7 @@ export default class WebPaymeSDK extends Component {
         ...dataLocalStorage
       }
       this._webPaymeSDK = new PaymeWebSdk(this.configs)
-      onSuccess({ accountStatus: dataLocalStorage.accountStatus })
+      onSuccess({ accountStatus: this.configs?.accountStatus })
     } else if (configs?.connectToken) {
       // Check trường hợp account đang login hay không? (Có connectToken có nghĩa là đang login)
       try {
