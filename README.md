@@ -506,8 +506,8 @@ refWebPaymeSDK.current.pay(
 | amount | Yes | Số tiền cần thanh toán bên app truyền qua cho SDK. |
 | note | No | Mô tả giao dịch từ phía đối tác. |
 | orderId | Yes | Mã giao dịch của đối tác, cần duy nhất trên mỗi giao dịch. Tối đa 22 kí tự |
-| storeId | Yes | ID của store phía cổng thanh toán thực hiên giao dịch thanh toán. |
-| userName | Yes | Tên tài khoản. |
+| storeId | No | ID của store phía cổng thanh toán thực hiên giao dịch thanh toán. |
+| userName | No | Tên tài khoản. |
 | isShowResultUI | No | Option hiển thị UI kết quả thanh toán. Default: true |
 | payCode | Yes | [Danh sách phương thức thanh toán](#danh-sách-phương-thức-thanh-toán) |
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện giao dịch thành công từ PayME SDK |
@@ -543,7 +543,6 @@ refWebPaymeSDK.current.getWalletInfo(response => {
 | PAYME  | Thanh toán ví PayME |
 | ATM  | Thanh toán thẻ ATM Nội địa |
 | MANUAL_BANK  | Thanh toán chuyển khoản ngân hàng |
-| VN_PAY  | Thanh toán QR Code ngân hàng |
 | CREDIT  | Thanh toán thẻ tín dụng |
 
 ## License
