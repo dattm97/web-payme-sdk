@@ -21,7 +21,6 @@ export const PAY_CODE = {
   ATM: 'ATM',
   CREDIT: 'CREDIT',
   MANUAL_BANK: 'MANUAL_BANK',
-  VN_PAY: 'VN_PAY',
   MOMO: 'MOMO',
   ZALO_PAY: 'ZALO_PAY'
 }
@@ -235,6 +234,7 @@ const SQL_DETECT_QR_CODE = `mutation DetectDataQRCode($input: OpenEWalletPayment
         amount
         note
         orderId
+        userName
       }
     }
   }
@@ -878,7 +878,8 @@ export default class WebPaymeSDK extends Component {
       SQL_GET_MERCHANT_INFO,
       {
         getInfoMerchantInput: {
-          storeId: params?.storeId
+          storeId: params?.storeId,
+          appId: params?.appId
         }
       },
       keys
@@ -1469,7 +1470,8 @@ export default class WebPaymeSDK extends Component {
 
     const responseGetMerchantInfo = await this.getMerchantInfo(
       {
-        storeId: param?.storeId
+        storeId: param?.storeId,
+        appId: this.configs?.xApi ?? this.configs?.appId
       },
       keys
     )
@@ -1626,6 +1628,9 @@ export default class WebPaymeSDK extends Component {
                   ?.orderId,
               note:
                 responseQRString?.response?.OpenEWallet?.Payment?.Detect?.note,
+              userName:
+                responseQRString?.response?.OpenEWallet?.Payment?.Detect
+                  ?.userName,
               isShowResultUI: param?.isShowResultUI,
               payCode: param?.payCode
             }
@@ -2156,6 +2161,7 @@ class PaymeWebSdk {
         orderId: param.orderId,
         storeId: param.storeId,
         note: param.note,
+        userName: param.userName,
         isShowResultUI: param.isShowResultUI,
         payCode: param.payCode
       }

@@ -307,18 +307,19 @@ refWebPaymeSDK.current.scanQR(
 
 Định dạng QR: 
 ```javascript
-const qrString = "{$type}|${storeId}|${action}|${amount}|${note}|${orderId}"
+const qrString = "{$type}|${storeId}|${action}|${amount}|${note}|${orderId}|${userName}"
 ``` 
-- action: loại giao dịch ( 'PAYMENT' => thanh toán)
+- action: loại giao dịch ('PAYMENT' => thanh toán)
 - amount: số tiền thanh toán
 - note: Mô tả giao dịch từ phía đối tác
-- orderId: mã giao dịch của đối tác, cần duy nhất trên mỗi giao dịch
+- orderId: mã giao dịch của đối tác, cần duy nhất trên mỗi giao dịch. Tối đa 22 kí tự.
 - storeId: ID của store phía công thanh toán thực hiên giao dịch thanh toán
+- userName: Tên tài khoản
 - type: OPENEWALLET
 
 Ví dụ :
 ```javascript
-const qrString = "OPENEWALLET|54938607|PAYMENT|20000|Chuyentien|2445562323"
+const qrString = "OPENEWALLET|54938607|PAYMENT|20000|Chuyentien|2445562323|taikhoan"
 ```
 
 #### payQRCode
@@ -343,7 +344,7 @@ refWebPaymeSDK.current.payQRCode(
 ```
 | **Tham số** | **Bắt buộc** | **Giải thích** |
 | :----------------------------------------------------------- | :----------- | :----------------------------------------------------------- |
-| qrContent | Yes| Nội dung QR Code |
+| qrContent | Yes| Nội dung QR Code. Định dạng QR như hàm scanQR() |
 | payCode | Yes | [Danh sách phương thức thanh toán](#danh-sách-phương-thức-thanh-toán) |
 | isShowResultUI | No | Option hiển thị UI kết quả thanh toán. Default: true |
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện giao dịch thành công từ PayME SDK |
@@ -483,9 +484,10 @@ Hàm này được dùng khi app cần thanh toán 1 khoản tiền từ ví Pay
 const  data = {
   amount:  Number,
   orderId:  String,
-  storeId:  Number,
+  storeId:  Number?,
   extractData: String,
   note:  String,
+  userName: String?,
   payCode: String,
   isShowResultUI: Boolean?,
 }
@@ -503,8 +505,9 @@ refWebPaymeSDK.current.pay(
 | :----------------------------------------------------------- | :----------- | :----------------------------------------------------------- |
 | amount | Yes | Số tiền cần thanh toán bên app truyền qua cho SDK. |
 | note | No | Mô tả giao dịch từ phía đối tác. |
-| orderId | Yes | Mã giao dịch của đối tác, cần duy nhất trên mỗi giao dịch. |
+| orderId | Yes | Mã giao dịch của đối tác, cần duy nhất trên mỗi giao dịch. Tối đa 22 kí tự |
 | storeId | Yes | ID của store phía cổng thanh toán thực hiên giao dịch thanh toán. |
+| userName | Yes | Tên tài khoản. |
 | isShowResultUI | No | Option hiển thị UI kết quả thanh toán. Default: true |
 | payCode | Yes | [Danh sách phương thức thanh toán](#danh-sách-phương-thức-thanh-toán) |
 | onSuccess | Yes | Dùng để bắt callback khi thực hiện giao dịch thành công từ PayME SDK |
