@@ -1235,7 +1235,7 @@ export default class WebPaymeSDK extends Component {
                   phone: configs.phone
                     ? configs.phone
                     : responseAccountInit.response?.OpenEWallet?.Init?.phone ??
-                      '',
+                    '',
                   clientId:
                     responseClientRegister.response?.Client?.Register?.clientId
                 }
@@ -1250,7 +1250,7 @@ export default class WebPaymeSDK extends Component {
                   phone: configs.phone
                     ? configs.phone
                     : responseAccountInit.response?.OpenEWallet?.Init?.phone ??
-                      '',
+                    '',
                   clientId:
                     responseClientRegister.response?.Client?.Register?.clientId
                 }
@@ -1772,7 +1772,7 @@ export default class WebPaymeSDK extends Component {
           (itemSetting) => itemSetting?.key === 'service.main.visible'
         )
         const valueStr = service[0]?.value ?? ''
-        const list = JSON.parse(valueStr)?.listService
+        const list = valueStr ? JSON.parse(valueStr)?.listService : []
         onSuccess(list)
       } else {
         if (
@@ -1952,13 +1952,13 @@ export default class WebPaymeSDK extends Component {
     const styleVisible = this.propStyle
       ? this.propStyle
       : {
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          top: 0,
-          left: 0,
-          overflow: 'hidden'
-        }
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        overflow: 'hidden'
+      }
 
     const containerStyleVisible = {
       display: 'block',
