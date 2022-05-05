@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 
 export const ERROR_CODE = {
   EXPIRED: 401,
+  ACCOUNT_LOCK: 405,
   NETWORK: -1,
   SYSTEM: -2,
   LIMIT: -3,
@@ -22,7 +23,8 @@ export const PAY_CODE = {
   CREDIT: 'CREDIT',
   MANUAL_BANK: 'MANUAL_BANK',
   MOMO: 'MOMO',
-  ZALO_PAY: 'ZALO_PAY'
+  ZALO_PAY: 'ZALO_PAY',
+  VIET_QR: 'VIET_QR'
 }
 
 const ACCOUNT_STATUS = {
@@ -601,9 +603,14 @@ export default class WebPaymeSDK extends Component {
       this.onCloseIframe()
     }
     if (e.data?.type === 'error') {
-      if (e.data?.code === 401) {
+      if (e.data?.code === ERROR_CODE.EXPIRED) {
         this.onCloseIframe()
         window.removeEventListener('message', this.handlerMessage) // khi bị 401 thì ngừng nghe message
+        localStorage.removeItem('PAYME')
+      }
+      if (e.data?.code === ERROR_CODE.ACCOUNT_LOCK) {
+        this.onCloseIframe()
+        window.removeEventListener('message', this.handlerMessage) // khi bị 405 thì ngừng nghe message
         localStorage.removeItem('PAYME')
       }
       this.sendRespone(e.data)
@@ -687,7 +694,7 @@ export default class WebPaymeSDK extends Component {
   sendRespone = (data) => {
     if (data?.error) {
       if (this._onError) this._onError(data?.error)
-    } else if (data?.code === 401) {
+    } else if (data?.code === ERROR_CODE.EXPIRED) {
       if (this._onError) this._onError(data)
     } else {
       if (this._onSuccess) this._onSuccess(data)
@@ -877,8 +884,10 @@ export default class WebPaymeSDK extends Component {
     const res = await this.callGraphql(
       SQL_GET_MERCHANT_INFO,
       {
-        getInfoMerchantInput: {
+        getInfoMerchantInput: params?.storeId ? {
           storeId: params?.storeId,
+          appId: params?.appId
+        } : {
           appId: params?.appId
         }
       },
@@ -994,7 +1003,7 @@ export default class WebPaymeSDK extends Component {
       const { errors } = response.data
       if (errors && this.size(errors) > 0) {
         const error = errors[0]
-        if (error.extensions?.code === 401) {
+        if (error.extensions?.code === ERROR_CODE.EXPIRED) {
           console.log(error.message ?? 'Thông tin xác thực không hợp lệ')
         } else if (error.extensions?.code === 400) {
           console.log('Có lỗi từ máy chủ hệ thống. Mã lỗi: SDK-C0002')
@@ -1266,7 +1275,7 @@ export default class WebPaymeSDK extends Component {
                 })
               }
             } else {
-              if (responseAccountInit.response[0]?.extensions?.code === 401) {
+              if (responseAccountInit.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
                 onError({
                   code: ERROR_CODE.EXPIRED,
                   message:
@@ -1291,7 +1300,7 @@ export default class WebPaymeSDK extends Component {
             })
           }
         } else {
-          if (responseClientRegister.response[0]?.extensions?.code === 401) {
+          if (responseClientRegister.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
             onError({
               code: ERROR_CODE.EXPIRED,
               message:
@@ -1505,7 +1514,7 @@ export default class WebPaymeSDK extends Component {
         return
       }
     } else {
-      if (responseGetMerchantInfo.response[0]?.extensions?.code === 401) {
+      if (responseGetMerchantInfo.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
         onError({
           code: ERROR_CODE.EXPIRED,
           message:
@@ -1645,7 +1654,7 @@ export default class WebPaymeSDK extends Component {
             })
           }
         } else {
-          if (responseQRString.response[0]?.extensions?.code === 401) {
+          if (responseQRString.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
             onError({
               code: ERROR_CODE.EXPIRED,
               message:
@@ -1670,7 +1679,7 @@ export default class WebPaymeSDK extends Component {
         })
       }
     } else {
-      if (responseClientRegister.response[0]?.extensions?.code === 401) {
+      if (responseClientRegister.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
         onError({
           code: ERROR_CODE.EXPIRED,
           message:
@@ -1714,7 +1723,7 @@ export default class WebPaymeSDK extends Component {
       if (responseGetWalletInfo.status) {
         onSuccess(responseGetWalletInfo.response?.Wallet ?? {})
       } else {
-        if (responseGetWalletInfo.response[0]?.extensions?.code === 401) {
+        if (responseGetWalletInfo.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
           onError({
             code: ERROR_CODE.EXPIRED,
             message:
@@ -1776,7 +1785,7 @@ export default class WebPaymeSDK extends Component {
         onSuccess(list)
       } else {
         if (
-          responseGetSettingServiceMain.response[0]?.extensions?.code === 401
+          responseGetSettingServiceMain.response[0]?.extensions?.code === ERROR_CODE.EXPIRED
         ) {
           onError({
             code: ERROR_CODE.EXPIRED,
@@ -1830,7 +1839,7 @@ export default class WebPaymeSDK extends Component {
       if (responseFindAccount.status) {
         onSuccess(responseFindAccount.response?.Account ?? {})
       } else {
-        if (responseFindAccount.response[0]?.extensions?.code === 401) {
+        if (responseFindAccount.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
           onError({
             code: ERROR_CODE.EXPIRED,
             message:
