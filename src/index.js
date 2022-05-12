@@ -683,6 +683,12 @@ export default class WebPaymeSDK extends Component {
   }
 
   onCloseIframe = () => {
+    if (this._onError) {
+      this._onError({
+        code: ERROR_CODE.USER_CANCELLED,
+        message: 'Đóng SDK'
+      })
+    }
     this.setState(
       {
         iframeVisible: { state: false }
