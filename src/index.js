@@ -602,6 +602,12 @@ export default class WebPaymeSDK extends Component {
       document.getElementById(this.id).innerHTML = ''
       this.onCloseIframe()
     }
+    if (e.data?.type === 'onDownload') {
+      const a = document.createElement("a"); //Create <a>
+      a.href = e?.data?.data?.url; //Image Base64 Goes here
+      a.download = "VietQR.png"; //File name Here
+      a.click(); //Downloaded file
+    }
     if (e.data?.type === 'error') {
       if (e.data?.code === ERROR_CODE.EXPIRED) {
         this.onCloseIframe()
@@ -683,12 +689,12 @@ export default class WebPaymeSDK extends Component {
   }
 
   onCloseIframe = () => {
-    if (this._onError) {
-      this._onError({
-        code: ERROR_CODE.USER_CANCELLED,
-        message: 'Đóng SDK'
-      })
-    }
+    // if (this._onError) {
+    //   this._onError({
+    //     code: ERROR_CODE.USER_CANCELLED,
+    //     message: 'Đóng SDK'
+    //   })
+    // }
     this.setState(
       {
         iframeVisible: { state: false }
