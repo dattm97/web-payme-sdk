@@ -603,10 +603,10 @@ export default class WebPaymeSDK extends Component {
       this.onCloseIframe()
     }
     if (e.data?.type === 'onDownload') {
-      const a = document.createElement("a"); //Create <a>
-      a.href = e?.data?.data?.url; //Image Base64 Goes here
-      a.download = "VietQR.png"; //File name Here
-      a.click(); //Downloaded file
+      const a = document.createElement('a') // Create <a>
+      a.href = e?.data?.data?.url // Image Base64 Goes here
+      a.download = 'VietQR.png' // File name Here
+      a.click() // Downloaded file
     }
     if (e.data?.type === 'error') {
       if (e.data?.code === ERROR_CODE.EXPIRED) {
@@ -896,12 +896,14 @@ export default class WebPaymeSDK extends Component {
     const res = await this.callGraphql(
       SQL_GET_MERCHANT_INFO,
       {
-        getInfoMerchantInput: params?.storeId ? {
-          storeId: params?.storeId,
-          appId: params?.appId
-        } : {
-          appId: params?.appId
-        }
+        getInfoMerchantInput: params?.storeId
+          ? {
+              storeId: params?.storeId,
+              appId: params?.appId
+            }
+          : {
+              appId: params?.appId
+            }
       },
       keys
     )
@@ -1256,7 +1258,7 @@ export default class WebPaymeSDK extends Component {
                   phone: configs.phone
                     ? configs.phone
                     : responseAccountInit.response?.OpenEWallet?.Init?.phone ??
-                    '',
+                      '',
                   clientId:
                     responseClientRegister.response?.Client?.Register?.clientId
                 }
@@ -1271,7 +1273,7 @@ export default class WebPaymeSDK extends Component {
                   phone: configs.phone
                     ? configs.phone
                     : responseAccountInit.response?.OpenEWallet?.Init?.phone ??
-                    '',
+                      '',
                   clientId:
                     responseClientRegister.response?.Client?.Register?.clientId
                 }
@@ -1287,11 +1289,14 @@ export default class WebPaymeSDK extends Component {
                 })
               }
             } else {
-              if (responseAccountInit.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+              if (
+                responseAccountInit.response[0]?.extensions?.code ===
+                ERROR_CODE.EXPIRED
+              ) {
                 onError({
                   code: ERROR_CODE.EXPIRED,
                   message:
-                    responseAccountInit.response[0]?.extensions?.message ??
+                    responseAccountInit.response[0]?.message ??
                     'Thông tin xác thực không hợp lệ'
                 })
               } else {
@@ -1312,11 +1317,14 @@ export default class WebPaymeSDK extends Component {
             })
           }
         } else {
-          if (responseClientRegister.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+          if (
+            responseClientRegister.response[0]?.extensions?.code ===
+            ERROR_CODE.EXPIRED
+          ) {
             onError({
               code: ERROR_CODE.EXPIRED,
               message:
-                responseClientRegister.response[0]?.extensions?.message ??
+                responseClientRegister.response[0]?.message ??
                 'Thông tin xác thực không hợp lệ'
             })
           } else {
@@ -1526,11 +1534,14 @@ export default class WebPaymeSDK extends Component {
         return
       }
     } else {
-      if (responseGetMerchantInfo.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+      if (
+        responseGetMerchantInfo.response[0]?.extensions?.code ===
+        ERROR_CODE.EXPIRED
+      ) {
         onError({
           code: ERROR_CODE.EXPIRED,
           message:
-            responseGetMerchantInfo.response[0]?.extensions?.message ??
+            responseGetMerchantInfo.response[0]?.message ??
             'Thông tin xác thực không hợp lệ'
         })
       } else {
@@ -1666,11 +1677,14 @@ export default class WebPaymeSDK extends Component {
             })
           }
         } else {
-          if (responseQRString.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+          if (
+            responseQRString.response[0]?.extensions?.code ===
+            ERROR_CODE.EXPIRED
+          ) {
             onError({
               code: ERROR_CODE.EXPIRED,
               message:
-                responseQRString.response[0]?.extensions?.message ??
+                responseQRString.response[0]?.message ??
                 'Thông tin xác thực không hợp lệ'
             })
           } else {
@@ -1691,11 +1705,14 @@ export default class WebPaymeSDK extends Component {
         })
       }
     } else {
-      if (responseClientRegister.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+      if (
+        responseClientRegister.response[0]?.extensions?.code ===
+        ERROR_CODE.EXPIRED
+      ) {
         onError({
           code: ERROR_CODE.EXPIRED,
           message:
-            responseClientRegister.response[0]?.extensions?.message ??
+            responseClientRegister.response[0]?.message ??
             'Thông tin xác thực không hợp lệ'
         })
       } else {
@@ -1735,11 +1752,14 @@ export default class WebPaymeSDK extends Component {
       if (responseGetWalletInfo.status) {
         onSuccess(responseGetWalletInfo.response?.Wallet ?? {})
       } else {
-        if (responseGetWalletInfo.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+        if (
+          responseGetWalletInfo.response[0]?.extensions?.code ===
+          ERROR_CODE.EXPIRED
+        ) {
           onError({
             code: ERROR_CODE.EXPIRED,
             message:
-              responseGetWalletInfo.response[0]?.extensions?.message ??
+              responseGetWalletInfo.response[0]?.message ??
               'Thông tin xác thực không hợp lệ'
           })
         } else {
@@ -1797,12 +1817,13 @@ export default class WebPaymeSDK extends Component {
         onSuccess(list)
       } else {
         if (
-          responseGetSettingServiceMain.response[0]?.extensions?.code === ERROR_CODE.EXPIRED
+          responseGetSettingServiceMain.response[0]?.extensions?.code ===
+          ERROR_CODE.EXPIRED
         ) {
           onError({
             code: ERROR_CODE.EXPIRED,
             message:
-              responseGetSettingServiceMain.response[0]?.extensions?.message ??
+              responseGetSettingServiceMain.response[0]?.message ??
               'Thông tin xác thực không hợp lệ'
           })
         } else {
@@ -1851,11 +1872,14 @@ export default class WebPaymeSDK extends Component {
       if (responseFindAccount.status) {
         onSuccess(responseFindAccount.response?.Account ?? {})
       } else {
-        if (responseFindAccount.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+        if (
+          responseFindAccount.response[0]?.extensions?.code ===
+          ERROR_CODE.EXPIRED
+        ) {
           onError({
             code: ERROR_CODE.EXPIRED,
             message:
-              responseFindAccount.response[0]?.extensions?.message ??
+              responseFindAccount.response[0]?.message ??
               'Thông tin xác thực không hợp lệ'
           })
         } else {
@@ -1973,13 +1997,13 @@ export default class WebPaymeSDK extends Component {
     const styleVisible = this.propStyle
       ? this.propStyle
       : {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        overflow: 'hidden'
-      }
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          top: 0,
+          left: 0,
+          overflow: 'hidden'
+        }
 
     const containerStyleVisible = {
       display: 'block',
