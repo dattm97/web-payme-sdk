@@ -1,246 +1,23 @@
 /* eslint-disable no-undef */
 import React, { Component } from 'react'
-
-export const ERROR_CODE = {
-  EXPIRED: 401,
-  ACCOUNT_LOCK: 405,
-  NETWORK: -1,
-  SYSTEM: -2,
-  LIMIT: -3,
-  NOT_ACTIVATED: -4,
-  KYC_NOT_APPROVED: -5,
-  PAYMENT_ERROR: -6,
-  ERROR_KEY_ENCODE: -7,
-  USER_CANCELLED: -8,
-  NOT_LOGIN: -9,
-  BALANCE_ERROR: -11,
-  UNKNOWN_PAYCODE: -12
-}
-
-export const PAY_CODE = {
-  PAYME: 'PAYME',
-  ATM: 'ATM',
-  CREDIT: 'CREDIT',
-  MANUAL_BANK: 'MANUAL_BANK',
-  MOMO: 'MOMO',
-  ZALO_PAY: 'ZALO_PAY',
-  VIET_QR: 'VIET_QR'
-}
-
-const ACCOUNT_STATUS = {
-  NOT_ACTIVATED: 'NOT_ACTIVATED',
-  NOT_KYC: 'NOT_KYC',
-  KYC_APPROVED: 'KYC_APPROVED',
-  KYC_REVIEW: 'KYC_REVIEW',
-  KYC_REJECTED: 'KYC_REJECTED'
-}
-
-export const LANGUAGES = {
-  VI: 'vi',
-  EN: 'en'
-}
-
-const WALLET_ACTIONS = {
-  LOGIN: 'LOGIN',
-  RELOGIN: 'RELOGIN',
-  GET_WALLET_INFO: 'GET_WALLET_INFO',
-  GET_ACCOUNT_INFO: 'GET_ACCOUNT_INFO',
-  OPEN_WALLET: 'OPEN_WALLET',
-  OPEN_HISTORY: 'OPEN_HISTORY',
-  WITHDRAW: 'WITHDRAW',
-  DEPOSIT: 'DEPOSIT',
-  TRANSFER: 'TRANSFER',
-  GET_LIST_SERVICE: 'GET_LIST_SERVICE',
-  OPEN_SERVICE: 'OPEN_SERVICE',
-  UTILITY: 'UTILITY',
-  GET_LIST_PAYMENT_METHOD: 'GET_LIST_PAYMENT_METHOD',
-  PAY: 'PAY',
-  SCAN_QR_CODE: 'SCAN_QR_CODE'
-}
-
-// const METHOD_TYPE = {
-//   PAYME: 'PAYME',
-//   PAYME_CREDIT: 'PAYME_CREDIT',
-//   WALLET: 'WALLET',
-//   BANK_ACCOUNT: 'BANK_ACCOUNT',
-//   BANK_CARD: 'BANK_CARD',
-//   BANK_CARD_PG: 'BANK_CARD_PG',
-//   BANK_TRANSFER: 'BANK_TRANSFER',
-//   ATM_CARD: 'ATM_CARD',
-//   GATEWAY: 'GATEWAY',
-//   CREDIT_CARD: 'CREDIT_CARD',
-//   LINKED: 'LINKED',
-//   BANK_QR_CODE: 'BANK_QR_CODE',
-//   LINKED_BANK: 'LINKED_BANK',
-//   LINKED_BANK_PVCBANK: 'LINKED_BANK_PVCBANK',
-//   LINKED_BANK_OCBBANK: 'LINKED_BANK_OCBBANK',
-//   LINKED_GATEWAY: 'LINKED_GATEWAY'
-// }
-
-/**
- * Config API
- */
-const API_GENERAL = 'fe.payme.vn'
-
-const GRAPHQL_DEV = 'https://dev-fe.payme.net.vn'
-const GRAPHQL_SANBOX = `https://sbx-${API_GENERAL}`
-const GRAPHQL_STAGING = `https://s${API_GENERAL}`
-const GRAPHQL_PRODUCTION = `https://${API_GENERAL}`
-
-/**
- * query graphql
- *
- */
-const SQL_CLIENT_REGISTER = `mutation ClientRegister ($clientRegisterInput: ClientRegisterInput!){
-     Client {
-     Register(input: $clientRegisterInput) {
-       succeeded
-       message
-       clientId
-     }
-   }
- }`
-
-const SQL_INIT_ACCOUNT = `mutation AccountInitMutation($initInput: CheckInitInput) {
-   OpenEWallet {
-     Init(input: $initInput) {
-       succeeded
-       message
-       handShake
-       accessToken
-       updateToken
-       kyc {
-         kycId
-         state
-         reason
-       }
-       phone
-       appEnv
-       storeName
-       storeImage
-       fullnameKyc
-     }
-   }
- }`
-
-const SQL_GET_BALANCE = `query Query {
-   Wallet {
-     balance
-     cash
-     lockCash
-   }
- }`
-
-const SQL_FIND_ACCOUNT = `query Query($accountPhone: String) {
-   Account(phone: $accountPhone) {
-     accountId
-     fullname
-     alias
-     phone
-     avatar
-     email
-     gender
-     isVerifiedEmail
-     isWaitingEmailVerification
-     birthday
-     address {
-       street
-       city {
-         title
-         identifyCode
-       }
-       district {
-         title
-         identifyCode
-       }
-       ward {
-         title
-         identifyCode
-       }
-     }
-     kyc {
-       kycId
-       state
-       reason
-       identifyNumber
-       details {
-         identifyNumber
-         issuedAt
-       }
-     }
-   }
- }`
-
-const SQL_SETTING = `query Query ($configsTags: String, $configsAppId: String, $configsKeys: [String]){
-   Setting {
-     configs (tags: $configsTags, appId: $configsAppId, keys: $configsKeys){
-       key
-       value
-       tags
-     }
-   }
- }`
-
-const SQL_PAYMENT_MEHTOD = `mutation Mutation($PaymentMethodInput: PaymentMethodInput) {
-   Utility {
-     GetPaymentMethod(input: $PaymentMethodInput) {
-       succeeded
-       message
-       methods {
-         methodId
-         title
-         label
-         type
-         fee
-         feeDescription
-         minFee
-         data {
-           ... on LinkedMethodInfo {
-             linkedId
-             issuer
-             swiftCode
-           }
-           ... on WalletMethodInfo {
-             accountId
-           }
-         }
-       }
-     }
-   }
- }`
-
-const SQL_GET_MERCHANT_INFO = `mutation Mutation($getInfoMerchantInput: OpenEWalletGetInfoMerchantInput!) {
-  OpenEWallet {
-    GetInfoMerchant(input: $getInfoMerchantInput) {
-      succeeded
-      message
-      merchantName
-      brandName
-      backgroundColor
-      storeImage
-      storeName
-      isVisibleHeader
-    }
-  }
-}`
-
-const SQL_DETECT_QR_CODE = `mutation DetectDataQRCode($input: OpenEWalletPaymentDetectInput!) {
-  OpenEWallet {
-    Payment {
-      Detect (input: $input) {
-        succeeded
-        message
-        type
-        storeId
-        action
-        amount
-        note
-        orderId
-        userName
-      }
-    }
-  }
-}`
+import {
+  SQL_CLIENT_REGISTER,
+  SQL_DETECT_QR_CODE,
+  SQL_FIND_ACCOUNT,
+  SQL_GET_BALANCE,
+  SQL_GET_MERCHANT_INFO,
+  SQL_INIT_ACCOUNT,
+  SQL_PAYMENT_MEHTOD,
+  SQL_SETTING
+} from './configs/graphql'
+import {
+  ACCOUNT_STATUS,
+  ERROR_CODE,
+  PAY_CODE,
+  WALLET_ACTIONS
+} from './constant'
+import { getDomain, getDomainAPI } from './helpers/common'
+import { AESEncrypt, createShortId, createXApiKey, createXApiValidate, decryptKey, decryptKey, encrypt, merge, parseDecryptKey, postRequest } from './helpers/script'
 
 class MeAPI extends Component {
   constructor(
@@ -256,181 +33,6 @@ class MeAPI extends Component {
     this.config = config
   }
 
-  loadScript(src) {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.type = 'text/javascript'
-      script.onload = resolve
-      script.onerror = reject
-      script.src = src
-      document.head.append(script)
-    })
-  }
-
-  merge(object, source) {
-    return this.loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js'
-    )
-      .then(() => {
-        return _.merge(object, source)
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
-  values(object) {
-    return this.loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js'
-    )
-      .then(() => {
-        return _.values(object)
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
-  decryptKey(
-    xAPIAction,
-    xAPIKey,
-    xAPIMessage,
-    xAPIValidate,
-    method,
-    accessToken
-  ) {
-    return this.loadScript(
-      'https://cdn.jsdelivr.net/npm/node-forge@0.7.0/dist/forge.min.js'
-    )
-      .then(async () => {
-        let decryptKey
-        try {
-          const key = forge.pki.privateKeyFromPem(this.config.privateKey)
-          const { util } = forge
-
-          const encrypted = util.decode64(xAPIKey)
-
-          decryptKey = key.decrypt(encrypted, 'RSA-OAEP')
-        } catch (error) {
-          throw new Error('Thông tin "x-api-key" không chính xác')
-        }
-        const objValidate = {
-          'x-api-action': xAPIAction,
-          method,
-          accessToken,
-          'x-api-message': xAPIMessage
-        }
-
-        const md = forge.md.md5.create()
-        const objValidateValue = await this.values(objValidate)
-        md.update(objValidateValue.join('') + decryptKey)
-        const validate = md.digest().toHex()
-
-        if (validate !== xAPIValidate) {
-          throw new Error('Thông tin "x-api-validate" không chính xác')
-        }
-
-        return decryptKey
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
-  parseDecryptKey(xAPIMessage, decryptKey) {
-    return this.loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js'
-    )
-      .then(() => {
-        // eslint-disable-next-line no-undef
-        try {
-          let result = null
-          result = JSON.parse(
-            CryptoJS.AES.decrypt(xAPIMessage, decryptKey).toString(
-              CryptoJS.enc.Utf8
-            )
-          )
-          if (typeof result === 'string') {
-            result = JSON.parse(result)
-          }
-
-          return result
-        } catch (error) {
-          throw new Error('Thông tin "x-api-message" không chính xác')
-        }
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
-  createShortId() {
-    return this.loadScript(
-      'https://unpkg.com/shortid-dist@1.0.5/dist/shortid-2.2.13.js'
-    )
-      .then(() => {
-        return shortid()
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
-  AESEncrypt(url, payload, encryptKey) {
-    return this.loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js'
-    )
-      .then(() => {
-        const xApiAction = CryptoJS.AES.encrypt(url, encryptKey).toString()
-        let xApiMessage = ''
-        if (payload) {
-          xApiMessage = CryptoJS.AES.encrypt(
-            JSON.stringify(payload),
-            encryptKey
-          ).toString()
-        }
-
-        return {
-          xApiAction,
-          xApiMessage
-        }
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
-  createXApiValidate(objValidate, encryptKey) {
-    return this.loadScript(
-      'https://cdn.jsdelivr.net/npm/node-forge@0.7.0/dist/forge.min.js'
-    )
-      .then(async () => {
-        const md = forge.md.md5.create()
-        const objValidateValue = await this.values(objValidate)
-        md.update(objValidateValue.join('') + encryptKey)
-        const xAPIValidate = md.digest().toHex()
-        return xAPIValidate
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
-  createXApiKey(encryptKey) {
-    return this.loadScript(
-      'https://cdn.jsdelivr.net/npm/node-forge@0.7.0/dist/forge.min.js'
-    )
-      .then(() => {
-        const key = forge.pki.publicKeyFromPem(this.config.publicKey)
-        const { util } = forge
-        const encrypt = key.encrypt(encryptKey, 'RSA-OAEP')
-        const xAPIKey = util.encode64(encrypt)
-        return xAPIKey
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
-  async postRequest(url, body, header) {
-    return this.loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js'
-    )
-      .then(async () => {
-        try {
-          const request = await axios.post(url, body, header)
-          return request
-        } catch (error) {
-          console.log(error)
-        }
-      })
-      .catch((err) => console.error('Something went wrong.', err))
-  }
-
   async ResponseDecrypt(
     xAPIAction,
     method,
@@ -440,7 +42,7 @@ class MeAPI extends Component {
     xAPIValidate,
     accessToken
   ) {
-    const decryptKey = await this.decryptKey(
+    const decryptKey = await decryptKey(
       xAPIAction,
       xAPIKey,
       xAPIMessage,
@@ -449,16 +51,16 @@ class MeAPI extends Component {
       accessToken
     )
 
-    const result = await this.parseDecryptKey(xAPIMessage, decryptKey)
+    const result = await parseDecryptKey(xAPIMessage, decryptKey)
     return result
   }
 
   async RequestEncrypt(url, method, payload, accessToken) {
-    const encryptKey = await this.createShortId()
-    const xAPIKey = await this.createXApiKey(encryptKey)
+    const encryptKey = await createShortId()
+    const xAPIKey = await createXApiKey(encryptKey, this.config.publicKey)
     let body = ''
 
-    const { xApiAction, xApiMessage } = await this.AESEncrypt(
+    const { xApiAction, xApiMessage } = await AESEncrypt(
       url,
       payload,
       encryptKey
@@ -470,7 +72,7 @@ class MeAPI extends Component {
       accessToken,
       'x-api-message': xApiMessage
     }
-    const xAPIValidate = await this.createXApiValidate(objValidate, encryptKey)
+    const xAPIValidate = await createXApiValidate(objValidate, encryptKey)
 
     body = {
       'x-api-message': xApiMessage
@@ -514,8 +116,8 @@ class MeAPI extends Component {
         body = encrypt.body
       }
 
-      const response = await this.postRequest(url, body, {
-        headers: await this.merge(meAPIHeader, headers),
+      const response = await postRequest(url, body, {
+        headers: await merge(meAPIHeader, headers),
         timeout: 60000
       })
 
@@ -733,19 +335,6 @@ export default class WebPaymeSDK extends Component {
     })
   }
 
-  getDomainAPI(env) {
-    switch (env) {
-      case 'dev':
-        return GRAPHQL_DEV
-      case 'sandbox':
-        return GRAPHQL_SANBOX
-      case 'staging':
-        return GRAPHQL_STAGING
-      default:
-        return GRAPHQL_PRODUCTION
-    }
-  }
-
   randomString(length) {
     let result = ''
     const characters =
@@ -805,7 +394,7 @@ export default class WebPaymeSDK extends Component {
   ) {
     const response = await this.callApiRSA({
       env: keys.env?.toLowerCase(),
-      domain: this.getDomainAPI(keys.env?.toLowerCase()),
+      domain: getDomainAPI(keys.env?.toLowerCase()),
       method: 'POST',
       pathUrl: '/graphql',
       accessToken: keys.accessToken ?? '',
@@ -890,12 +479,14 @@ export default class WebPaymeSDK extends Component {
     const res = await this.callGraphql(
       SQL_GET_MERCHANT_INFO,
       {
-        getInfoMerchantInput: params?.storeId ? {
-          storeId: params?.storeId,
-          appId: params?.appId
-        } : {
-          appId: params?.appId
-        }
+        getInfoMerchantInput: params?.storeId
+          ? {
+              storeId: params?.storeId,
+              appId: params?.appId
+            }
+          : {
+              appId: params?.appId
+            }
       },
       keys
     )
@@ -1250,7 +841,7 @@ export default class WebPaymeSDK extends Component {
                   phone: configs.phone
                     ? configs.phone
                     : responseAccountInit.response?.OpenEWallet?.Init?.phone ??
-                    '',
+                      '',
                   clientId:
                     responseClientRegister.response?.Client?.Register?.clientId
                 }
@@ -1265,7 +856,7 @@ export default class WebPaymeSDK extends Component {
                   phone: configs.phone
                     ? configs.phone
                     : responseAccountInit.response?.OpenEWallet?.Init?.phone ??
-                    '',
+                      '',
                   clientId:
                     responseClientRegister.response?.Client?.Register?.clientId
                 }
@@ -1277,11 +868,14 @@ export default class WebPaymeSDK extends Component {
                   code: ERROR_CODE.SYSTEM,
                   message:
                     responseAccountInit.response?.OpenEWallet?.Init?.message ??
-                    'Có lỗi từ máy chủ hệ thống'
+                    'Có lỗi từ máy chủ hệ thống - Mã lỗi (ClientInit)'
                 })
               }
             } else {
-              if (responseAccountInit.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+              if (
+                responseAccountInit.response[0]?.extensions?.code ===
+                ERROR_CODE.EXPIRED
+              ) {
                 onError({
                   code: ERROR_CODE.EXPIRED,
                   message:
@@ -1293,7 +887,7 @@ export default class WebPaymeSDK extends Component {
                   code: ERROR_CODE.SYSTEM,
                   message:
                     responseAccountInit?.response?.message ??
-                    'Có lỗi từ máy chủ hệ thống'
+                    'Có lỗi từ máy chủ hệ thống - Mã lỗi (ClientInit)'
                 })
               }
             }
@@ -1302,11 +896,14 @@ export default class WebPaymeSDK extends Component {
               code: ERROR_CODE.SYSTEM,
               message:
                 responseClientRegister.response?.Client?.Register?.message ??
-                'Có lỗi từ máy chủ hệ thống'
+                'Có lỗi từ máy chủ hệ thống - Mã lỗi (ClientRegister)'
             })
           }
         } else {
-          if (responseClientRegister.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+          if (
+            responseClientRegister.response[0]?.extensions?.code ===
+            ERROR_CODE.EXPIRED
+          ) {
             onError({
               code: ERROR_CODE.EXPIRED,
               message:
@@ -1318,7 +915,7 @@ export default class WebPaymeSDK extends Component {
               code: ERROR_CODE.SYSTEM,
               message:
                 responseClientRegister?.response?.message ??
-                'Có lỗi từ máy chủ hệ thống'
+                'Có lỗi từ máy chủ hệ thống - Mã lỗi (ClientRegister)'
             })
           }
         }
@@ -1515,12 +1112,16 @@ export default class WebPaymeSDK extends Component {
           code: ERROR_CODE.SYSTEM,
           message:
             responseGetMerchantInfo?.response?.OpenEWallet?.GetInfoMerchant
-              ?.message ?? 'Có lỗi từ máy chủ hệ thống'
+              ?.message ??
+            'Có lỗi từ máy chủ hệ thống - Mã lỗi (GetInfoMerchant)'
         })
         return
       }
     } else {
-      if (responseGetMerchantInfo.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+      if (
+        responseGetMerchantInfo.response[0]?.extensions?.code ===
+        ERROR_CODE.EXPIRED
+      ) {
         onError({
           code: ERROR_CODE.EXPIRED,
           message:
@@ -1532,7 +1133,7 @@ export default class WebPaymeSDK extends Component {
           code: ERROR_CODE.SYSTEM,
           message:
             responseGetMerchantInfo?.response?.message ??
-            'Có lỗi từ máy chủ hệ thống'
+            'Có lỗi từ máy chủ hệ thống - Mã lỗi (GetInfoMerchant)'
         })
       }
       return
@@ -1656,11 +1257,14 @@ export default class WebPaymeSDK extends Component {
               code: ERROR_CODE.SYSTEM,
               message:
                 responseQRString.response?.OpenEWallet?.Payment?.Detect
-                  ?.message ?? 'Có lỗi từ máy chủ hệ thống'
+                  ?.message ?? 'Có lỗi từ máy chủ hệ thống - Mã lỗi (QRString)'
             })
           }
         } else {
-          if (responseQRString.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+          if (
+            responseQRString.response[0]?.extensions?.code ===
+            ERROR_CODE.EXPIRED
+          ) {
             onError({
               code: ERROR_CODE.EXPIRED,
               message:
@@ -1672,7 +1276,7 @@ export default class WebPaymeSDK extends Component {
               code: ERROR_CODE.SYSTEM,
               message:
                 responseQRString?.response?.message ??
-                'Có lỗi từ máy chủ hệ thống'
+                'Có lỗi từ máy chủ hệ thống - Mã lỗi (QRString)'
             })
           }
         }
@@ -1681,11 +1285,14 @@ export default class WebPaymeSDK extends Component {
           code: ERROR_CODE.SYSTEM,
           message:
             responseClientRegister.response?.Client?.Register?.message ??
-            'Có lỗi từ máy chủ hệ thống'
+            'Có lỗi từ máy chủ hệ thống - Mã lỗi (Register)'
         })
       }
     } else {
-      if (responseClientRegister.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+      if (
+        responseClientRegister.response[0]?.extensions?.code ===
+        ERROR_CODE.EXPIRED
+      ) {
         onError({
           code: ERROR_CODE.EXPIRED,
           message:
@@ -1729,7 +1336,10 @@ export default class WebPaymeSDK extends Component {
       if (responseGetWalletInfo.status) {
         onSuccess(responseGetWalletInfo.response?.Wallet ?? {})
       } else {
-        if (responseGetWalletInfo.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+        if (
+          responseGetWalletInfo.response[0]?.extensions?.code ===
+          ERROR_CODE.EXPIRED
+        ) {
           onError({
             code: ERROR_CODE.EXPIRED,
             message:
@@ -1791,7 +1401,8 @@ export default class WebPaymeSDK extends Component {
         onSuccess(list)
       } else {
         if (
-          responseGetSettingServiceMain.response[0]?.extensions?.code === ERROR_CODE.EXPIRED
+          responseGetSettingServiceMain.response[0]?.extensions?.code ===
+          ERROR_CODE.EXPIRED
         ) {
           onError({
             code: ERROR_CODE.EXPIRED,
@@ -1845,7 +1456,10 @@ export default class WebPaymeSDK extends Component {
       if (responseFindAccount.status) {
         onSuccess(responseFindAccount.response?.Account ?? {})
       } else {
-        if (responseFindAccount.response[0]?.extensions?.code === ERROR_CODE.EXPIRED) {
+        if (
+          responseFindAccount.response[0]?.extensions?.code ===
+          ERROR_CODE.EXPIRED
+        ) {
           onError({
             code: ERROR_CODE.EXPIRED,
             message:
@@ -1967,13 +1581,13 @@ export default class WebPaymeSDK extends Component {
     const styleVisible = this.propStyle
       ? this.propStyle
       : {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        overflow: 'hidden'
-      }
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          top: 0,
+          left: 0,
+          overflow: 'hidden'
+        }
 
     const containerStyleVisible = {
       display: 'block',
@@ -1997,92 +1611,26 @@ export default class WebPaymeSDK extends Component {
   }
 }
 class PaymeWebSdk {
-  WALLET_ACTIONS = {
-    LOGIN: 'LOGIN',
-    GET_WALLET_INFO: 'GET_WALLET_INFO',
-    GET_ACCOUNT_INFO: 'GET_ACCOUNT_INFO',
-    OPEN_WALLET: 'OPEN_WALLET',
-    OPEN_HISTORY: 'OPEN_HISTORY',
-    WITHDRAW: 'WITHDRAW',
-    DEPOSIT: 'DEPOSIT',
-    TRANSFER: 'TRANSFER',
-    GET_LIST_SERVICE: 'GET_LIST_SERVICE',
-    UTILITY: 'UTILITY',
-    GET_LIST_PAYMENT_METHOD: 'GET_LIST_PAYMENT_METHOD',
-    PAY: 'PAY',
-    SCAN_QR_CODE: 'SCAN_QR_CODE'
-  }
-
-  ENV = {
-    dev: 'dev',
-    sandbox: 'sandbox',
-    staging: 'staging',
-    production: 'production'
-  }
-
   constructor(configs, settings) {
     this.saveLocalStorage(configs)
     this.configs = configs
-    this.domain = this.getDomain(configs.env.toLowerCase())
+    this.domain = getDomain(configs.env.toLowerCase())
   }
 
   async saveLocalStorage(configs) {
-    const encrypted = await this.encrypt(configs)
+    const encrypted = await encrypt(configs)
     localStorage.setItem('PAYME', encrypted)
-  }
-
-  getDomain(env) {
-    switch (env) {
-      case this.ENV.dev:
-        return 'https://dev-sdk.payme.com.vn'
-      case this.ENV.sandbox:
-        return 'https://sbx-sdk.payme.com.vn'
-      case this.ENV.staging:
-        return 'https://staging-sdk.payme.com.vn'
-      case this.ENV.production:
-        return 'https://sdk.payme.com.vn'
-      default:
-        return 'https://sbx-sdk.payme.com.vn'
-    }
-  }
-
-  loadScript(src) {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.type = 'text/javascript'
-      script.onload = resolve
-      script.onerror = reject
-      script.src = src
-      document.head.append(script)
-    })
-  }
-
-  encrypt(text) {
-    const secretKey = 'CMo359Lqx16QYi3x'
-    return this.loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js'
-    )
-      .then(() => {
-        // eslint-disable-next-line no-undef
-        const encrypted = CryptoJS.AES.encrypt(
-          JSON.stringify(text),
-          secretKey
-        ).toString()
-
-        return encrypted
-      })
-      .catch((err) => console.error('Something went wrong.', err))
   }
 
   async createLoginURL() {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.LOGIN
+        type: WALLET_ACTIONS.LOGIN
       }
     }
 
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2091,10 +1639,10 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.OPEN_WALLET
+        type: WALLET_ACTIONS.OPEN_WALLET
       }
     }
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2103,10 +1651,10 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.OPEN_HISTORY
+        type: WALLET_ACTIONS.OPEN_HISTORY
       }
     }
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2115,13 +1663,13 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.DEPOSIT,
+        type: WALLET_ACTIONS.DEPOSIT,
         amount: param.amount,
         closeWhenDone: param?.closeWhenDone
       }
     }
 
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2130,12 +1678,12 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.WITHDRAW,
+        type: WALLET_ACTIONS.WITHDRAW,
         amount: param.amount,
         closeWhenDone: param?.closeWhenDone
       }
     }
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2144,13 +1692,13 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.TRANSFER,
+        type: WALLET_ACTIONS.TRANSFER,
         amount: param.amount,
         description: param.description,
         closeWhenDone: param?.closeWhenDone
       }
     }
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2159,11 +1707,11 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.SCAN_QR_CODE,
+        type: WALLET_ACTIONS.SCAN_QR_CODE,
         payCode: param?.payCode
       }
     }
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2172,7 +1720,7 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.PAY,
+        type: WALLET_ACTIONS.PAY,
         amount: param.amount,
         orderId: param.orderId,
         storeId: param.storeId,
@@ -2182,7 +1730,7 @@ class PaymeWebSdk {
         payCode: param.payCode
       }
     }
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2191,10 +1739,10 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.GET_LIST_SERVICE
+        type: WALLET_ACTIONS.GET_LIST_SERVICE
       }
     }
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
@@ -2216,11 +1764,11 @@ class PaymeWebSdk {
     const configs = {
       ...this.configs,
       actions: {
-        type: this.WALLET_ACTIONS.UTILITY,
+        type: WALLET_ACTIONS.UTILITY,
         serviceCode
       }
     }
-    const encrypt = await this.encrypt(configs)
+    const encrypt = await encrypt(configs)
 
     return this.domain + '/getDataWithAction/' + encodeURIComponent(encrypt)
   }
